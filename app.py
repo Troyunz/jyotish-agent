@@ -291,6 +291,58 @@ with tab_chart:
         st.markdown(f"**Lagna:** {asc['sign_name']} {asc['deg_str']} - nakshatra "
                     f"{asc['nakshatra']['name']} pada {asc['nakshatra']['pada']} (lord {asc['nakshatra']['lord']})")
 
+        nk, mp = c.get("namakshar"), c.get("moon_profile")
+        if nk or mp:
+            k1, k2, k3 = st.columns(3)
+            if nk:
+                k1.metric("Namakshar (naming syllable)", f"{nk['syllable']}  {nk['syllable_roman']}",
+                          f"{nk['nakshatra']} pada {nk['pada']}")
+            if mp:
+                k2.metric("Chandra gati (Moon speed)", f"{mp['speed']}°/day", mp["gati"])
+                k3.metric("Birth-time sensitivity", f"~{mp['dasha_days_per_minute']} dasha-days",
+                          "per minute of clock error")
+            with st.expander("Namakshar & Chandra gati - details"):
+                if nk:
+                    st.markdown(
+                        f"**Birth naming syllable (namakarana):** {nk['syllable']} ({nk['syllable_roman']}) "
+                        f"- from the Moon's nakshatra {nk['nakshatra']}, pada {nk['pada']}."
+                        + (f"  \n*{nk['note']}*" if nk.get("note") else ""))
+                    st.markdown("All padas of this nakshatra: "
+                                + " · ".join(f"pada {p['pada']} = **{p['syllable']}** ({p['roman']})"
+                                             for p in nk["all_padas"]))
+                    st.caption("Traditionally the child's name begins with this syllable so the name "
+                              "carries the vibration of the birth nakshatra. The Moon's position gives "
+                              "the syllable - not the other way round.")
+                if mp:
+                    st.markdown(f"**Chandra gati:** {mp['speed']}°/day vs mean {mp['mean_speed']} "
+                                f"(ratio {mp['ratio']}) → {mp['gati']}. {mp['note']}.")
+                    st.markdown(f"- Nakshatra crossing: **{mp['nakshatra_hours']}h** · "
+                                f"sign crossing: **{mp['sign_hours']}h** "
+                                f"(the Moon's elliptical orbit means this varies from ~21h to ~27h)")
+                    st.markdown(f"- Birth-time sensitivity: **1 minute** of clock error moves the dasha "
+                                f"timeline by about **{mp['dasha_days_per_minute']} days** — relevant "
+                                f"whenever the birth time is uncertain.")
+                with st.expander("Full 108-syllable namakshar table"):
+                    from core import namakshar as nk_mod
+
+                    st.code(nk_mod.table_text(), language="text")
+                with st.expander("Check a name against the chart (soft cross-check)"):
+                    st.caption("Optional: many families don't follow the naming tradition and spellings "
+                              "drift, so treat this as a hint, never as an error in the name.")
+                    name = st.text_input("Name", value="", key="nk_lookup_name", placeholder="e.g. Gautam")
+                    if name.strip():
+                        hits = nk_mod.lookup(name.strip())
+                        if hits:
+                            st.markdown("Names beginning **" + name.strip()[0].upper() + "** could belong to: "
+                                        + ", ".join(f"**{h['nakshatra']}** pada {h['pada']} "
+                                                    f"({h['syllable']} / {h['syllable_roman']})" for h in hits))
+                            if nk and any(h["nakshatra"] == nk["nakshatra"] and h["pada"] == nk["pada"]
+                                          for h in hits):
+                                st.success(f"✓ matches the chart: {nk['nakshatra']} pada {nk['pada']}")
+                        else:
+                            st.info("That syllable isn't one of the 108 — the name may simply not follow "
+                                    "the naming tradition, which is common and not a problem.")
+
         st.markdown("#### Grahas (sidereal positions)")
         rows = []
         for g in ("Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"):

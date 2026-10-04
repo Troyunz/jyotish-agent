@@ -302,6 +302,131 @@ def main() -> int:
     check("every third-party import is declared in requirements.txt", not missing,
           f"undeclared: {sorted(missing)}")
 
+    print("\nnamakshar (naming syllables):")
+    from core import namakshar as nk
+    from core.chart import NAKSHATRAS, moon_gati, render_chart_text
+
+    check("27 nakshatras with 4 padas each = 108 syllables",
+          len(nk.PADA_SYLLABLES) == 27 and all(len(p) == 4 for _, p, _ in nk.PADA_SYLLABLES),
+          f"{len(nk.PADA_SYLLABLES)} nakshatras")
+    all_syl = [d for _, padas, _ in nk.PADA_SYLLABLES for d, _ in padas]
+    all_rom = [r for _, padas, _ in nk.PADA_SYLLABLES for _, r in padas]
+    check("108 syllables, all non-empty", len(all_syl) == 108 and all(s.strip() for s in all_syl))
+    check("every syllable has a roman form", all(r.strip() for r in all_rom))
+    check("syllables are Devanagari", all(any("\u0900" <= c <= "\u097f" for c in s) for s in all_syl))
+    check("nakshatra names match the engine's nakshatra list",
+          [n for n, _, _ in nk.PADA_SYLLABLES] == [n for n, _ in NAKSHATRAS])
+
+    # known values, verified against published pada tables
+    known = [(0.0, "Ashwini", 1, "चु", "Chu"), (13.4, "Bharani", 1, "ली", "Li"),
+             (40.0, "Rohini", 1, "ओ", "O"), (120.0, "Magha", 1, "मा", "Ma"),
+             (246.0, "Mula", 2, "यो", "Yo"), (252.0, "Mula", 4, "भी", "Bhi"),
+             (359.9, "Revati", 4, "ची", "Chi")]
+    for lon, exp_nak, exp_pada, exp_dev, exp_rom in known:
+        got = nk.syllables_for(lon)
+        check(f"lon {lon} -> {exp_nak} pada {exp_pada} = {exp_dev} ({exp_rom})",
+              got["nakshatra"] == exp_nak and got["pada"] == exp_pada
+              and got["syllable"] == exp_dev and got["syllable_roman"] == exp_rom, str(got))
+
+    # the test chart's Moon: Dhanishta pada 4 -> Ge
+    moon_lon = chart["planets"]["Moon"]["lon"]
+    got = nk.syllables_for(moon_lon)
+    check("test chart Moon lands on Dhanishta pada 4 = Ge",
+          got["nakshatra"] == "Dhanishta" and got["pada"] == 4 and got["syllable_roman"] == "Ge", str(got))
+    check("chart carries the namakshar block",
+          chart["namakshar"]["syllable_roman"] == got["syllable_roman"])
+    check("all four padas returned", len(chart["namakshar"]["all_padas"]) == 4)
+
+    # boundary sweep: every longitude yields a valid pada, no gaps
+    bad = []
+    x = 0.0
+    while x < 360.0:
+        r = nk.syllables_for(x)
+        if not (1 <= r["pada"] <= 4 and r["syllable"]):
+            bad.append(x)
+        x += 1.0 / 60
+    check("21,600-longitude sweep yields valid syllables with no gaps", not bad, f"{bad[:5]}")
+
+    # boundary agreement: chart, namakshar and dasha must never disagree at a cusp
+    cusp_nak = [(i * (360 / 27), nakshatra_of(i * (360 / 27))["name"], nk.syllables_for(i * (360 / 27))["nakshatra"])
+                for i in range(27)]
+    check("nakshatra agrees between chart and namakshar at all 27 cusps",
+          all(c == d == NAKSHATRAS[i][0] for i, (_lon, c, d) in enumerate(cusp_nak)),
+          str([t for t in cusp_nak if not (t[1] == t[2])]))
+    cusp_pada = [(i * (360 / 108), nakshatra_of(i * (360 / 108))["pada"], nk.syllables_for(i * (360 / 108))["pada"])
+                 for i in range(108)]
+    check("pada agrees between chart and namakshar at all 108 cusps",
+          all(c == d for _lon, c, d in cusp_pada) and all(1 <= c <= 4 for _l, c, _d in cusp_pada),
+          str([t for t in cusp_pada if t[1] != t[2]]))
+    check("10.000000 deg is Ashwini pada 4 (the float-boundary case)",
+          nakshatra_of(10.0)["name"] == "Ashwini" and nakshatra_of(10.0)["pada"] == 4
+          and nk.syllables_for(10.0)["syllable_roman"] == "La",
+          f"{nakshatra_of(10.0)['name']} pada {nakshatra_of(10.0)['pada']}")
+    check("40.000000 deg is Rohini pada 1 (the float-boundary case)",
+          nakshatra_of(40.0)["name"] == "Rohini" and nakshatra_of(40.0)["pada"] == 1,
+          f"{nakshatra_of(40.0)['name']} pada {nakshatra_of(40.0)['pada']}")
+    # the dasha engine must start from the same nakshatra as the other two
+    d_cusp = dasha_mod.vimshottari(40.0, datetime(2000, 1, 1))
+    check("dasha at exactly 40.0 deg starts with Moon (Rohini's lord), not Mars (Krittika's)",
+          d_cusp[0]["lord"] == "Moon", f"{d_cusp[0]['lord']} first")
+    check("pada is never outside 1-4 across a 21,600-point sweep",
+          all(1 <= nakshatra_of(i / 60.0)["pada"] <= 4 for i in range(21600)))
+
+    # reverse lookup
+    check("reverse: 'Ge' -> Dhanishta pada 4",
+          any(h["nakshatra"] == "Dhanishta" and h["pada"] == 4 for h in nk.lookup("Ge")))
+    check("reverse: Devanagari 'गे' works too",
+          any(h["nakshatra"] == "Dhanishta" for h in nk.lookup("गे")))
+    check("reverse: shared syllable returns several nakshatras", len(nk.lookup("Ta")) > 1,
+          f"{len(nk.lookup('Ta'))} matches")
+    check("reverse: a roman name matches on its first syllable ('Gautam' -> Ga family)",
+          any(h["nakshatra"] == "Dhanishta" and h["pada"] == 1 for h in nk.lookup("Gautam")),
+          str(nk.lookup("Gautam")))
+    check("reverse: a Devanagari name matches on its first base character ('गौतम' -> ग)",
+          any(h["syllable_roman"].startswith("Ga") for h in nk.lookup("गौतम")), str(nk.lookup("गौतम")))
+    # श is genuinely not one of the 108 (the list has the retroflex ष); roman "Sharma"
+    # matches only because English transliteration collapses श and ष onto "Sh".
+    check("reverse: Devanagari 'शर्मा' honestly returns empty (श is not a pada syllable)",
+          nk.lookup("शर्मा") == [], str(nk.lookup("शर्मा")))
+    check("reverse: Devanagari 'ष' (the retroflex, which IS in the list) resolves",
+          len(nk.lookup("ष")) > 0, str(nk.lookup("ष")))
+    check("reverse: single letters stay a short, readable list (<20 hits)",
+          all(len(nk.lookup(s)) < 20 for s in "RTA'SG"), str([(s, len(nk.lookup(s))) for s in "RTASG"]))
+    check("reverse: unknown syllable returns empty, not an error", nk.lookup("Zz") == [])
+    check("reverse: empty input is safe", nk.lookup("") == [])
+
+    print("\nchandra gati (Moon's speed):")
+    fast = moon_gati(14.0)
+    slow = moon_gati(11.9)
+    avg = moon_gati(13.2)
+    check("15 deg/day (near the real maximum) is 'very fast'",
+          moon_gati(15.0)["gati"].startswith("very fast"), moon_gati(15.0)["gati"])
+    check("fast Moon classified fast", fast["gati"].startswith("fast"), fast["gati"])
+    check("slow Moon classified slow", slow["gati"].startswith("slow"), slow["gati"])
+    check("average Moon classified average", avg["gati"].startswith("average"), avg["gati"])
+    check("very slow Moon classified ati-manda", moon_gati(11.0)["gati"].startswith("very slow"))
+    # the documented claim: a nakshatra takes 20.9h (perigee) to 27.1h (apogee)
+    perigee, apogee = moon_gati(15.31), moon_gati(11.79)
+    check("nakshatra crossing spans ~20.9h (fastest) to ~27.1h (slowest)",
+          20.7 < perigee["nakshatra_hours"] < 21.1 and 26.9 < apogee["nakshatra_hours"] < 27.3,
+          f"perigee={perigee['nakshatra_hours']}h apogee={apogee['nakshatra_hours']}h")
+    check("sign crossing spans ~47h to ~61h",
+          46.5 < perigee["sign_hours"] < 47.5 and 60.5 < apogee["sign_hours"] < 61.5,
+          f"perigee={perigee['sign_hours']}h apogee={apogee['sign_hours']}h")
+    check("dasha sensitivity ~1.1 days per minute at mean speed",
+          abs(avg["dasha_days_per_minute"] - 1.11) < 0.05, str(avg["dasha_days_per_minute"]))
+    check("fast Moon shifts the dasha timeline more than a slow one",
+          fast["dasha_days_per_minute"] > slow["dasha_days_per_minute"])
+    check("chart carries the moon_profile block with all fields",
+          all(k in chart["moon_profile"] for k in
+              ("speed", "gati", "note", "nakshatra_hours", "sign_hours", "dasha_days_per_minute")))
+    rendered = render_chart_text(chart)
+    check("chandra gati rendered into the chart text", "CHANDRA GATI" in rendered)
+    check("namakshar rendered into the chart text", "NAMAKSHAR" in rendered)
+    check("chart text states the dasha sensitivity in human terms",
+          "Birth-time sensitivity" in rendered and "dasha timeline" in rendered)
+    check("table_text() lists all 27 nakshatras", nk.table_text().count(":") >= 27)
+
     print("\nknowledge index freshness:")
     import shutil
     import tempfile

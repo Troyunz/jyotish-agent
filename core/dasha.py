@@ -55,6 +55,9 @@ def vimshottari(moon_lon: float, birth_dt: datetime, year_days: float = 365.2425
     moon_lon : sidereal longitude of the Moon (0-360)
     depth    : 1 = Mahadasha only, 2 = +Antardasha, 3 = +Pratyantardasha
     """
+    # +1e-9 deg keeps nakshatra boundaries consistent with core.chart.nakshatra_of and
+    # core.namakshar: a Moon at exactly 40.000000 deg starts Rohini, not Krittika.
+    moon_lon = (moon_lon + 1e-9) % 360.0
     idx = int(moon_lon // NAK_SPAN) % 27
     frac = (moon_lon % NAK_SPAN) / NAK_SPAN
     start_i = idx % 9

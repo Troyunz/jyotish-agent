@@ -20,6 +20,8 @@ Built and tested for: Windows 11 · Ryzen 5 4600H · 16 GB RAM · GTX 1650 4 GB 
 | **JHora-parity positions** | `position_mode: true` uses the true-position flag set verified against desktop Jagannatha Hora (≤1″), reported in every chart; switchable to apparent positions |
 | **Bundled ephemeris** | Official Astrodienst `.se1` data files ship with the repo — no silent Moshier fallback, and the engine reports which ephemeris actually served the calculation |
 | **Topic-routed analysis** | Questions are classified (marriage / career / wealth / children / health / education / transit / spirituality) and each gets the tradition's own checklist for that subject |
+| **Namakshar** | The birth naming syllable from the Moon's pada (all 108, Devanagari + roman) with a soft reverse name-check — presented as a hint, never as an error in your name |
+| **Chandra gati** | The Moon's daily speed vs the mean, its five classical bands, the 21–27 h nakshatra crossing, and **how far 1 minute of birth-clock error shifts the dasha timeline** (~1.1 days) |
 | **Panchanga** | Tithi, nitya yoga, karana, vara, Moon phase, sunrise/sunset for the birth location |
 | **Classical RAG** | Hybrid BM25 + embedding search over classical texts and notes in `data/knowledge/`, cited in the answers (BPHS, Phaladeepika, Saravali, Brihat Jataka, Jataka Parijata, Uttara Kalamrita and Ashtakavarga study notes included) |
 | **Stale-index detection** | sha1 per knowledge file; the CLI and UI warn (naming the files) when notes were edited or added without rebuilding, so the agent never silently serves outdated texts |
@@ -153,9 +155,11 @@ Any change is picked up on restart. The provider can also be switched live from 
 
 ## Where to take it next
 
-- **Add Ashtakavarga / Shadbala** — `core/chart.py` already exposes planetary longitudes and house data; bindus and six-fold strength are the natural next layer for sharper transit timing.
+- **Add Shadbala** — Ashtakavarga (bindus) is done; six-fold planetary strength is the remaining half of "which planet actually dominates this chart". `core/chart.py` already exposes the longitudes, houses and dignities it needs. Note that implementations differ in variant conventions (Sthana/Kala/Cheshta choices), so state the convention you adopt and benchmark against a reference (JHora, or the free VedAstro / vedic-astro-skills implementations).
+- **Tratak as a prescribed upaya** — the yoga-kriya material is in `data/knowledge/remedies.md`, but Tratak is not yet suggested by name in remedy answers; wire it to the Moon/Rahu/6-8-12 mental-strain signatures with its contraindications.
 - **Add your own knowledge** — drop `.md`/`.txt`/`.pdf` files into `data/knowledge/` and run `python build_index.py`. Add a pretty title mapping in `core/rag.py` → `_title_of`.
-- **Match two charts** — write a `core/matching.py` (Ashtakoota with the 36 points); all the pieces (nakshatra, gana, nadi, rashi lords, Mangal dosha) are already computed.
+- **Match two charts** — write a `core/matching.py` (Ashtakoota with the 36 points); all the pieces (nakshatra, gana, nadi, rashi lords, Mangal dosha) are already computed, and `core/namakshar.py` gives you each native's birth syllable for the Nadi/Rashi parts.
+- **Tribhagi dasha (lineage variant)** — a Vimshottari variant that splits each mahadasha into thirds and cycles through all 27 nakshatras; used with the Sarvatobhadra chakra and navatara analysis. Not mainstream BPHS — label the provenance clearly if you add it. (`Tribhaga bala` under Kala Bala is a different thing entirely.)
 - **Prashna (horary)** — compute the chart for the moment of the question instead of a birth date; `chart.calc_chart` takes any datetime.
 - **Other front ends** — the agent is just Python: wrap `JyotishAgent.stream_answer()` in FastAPI, a Telegram bot, a WhatsApp bridge, or expose it to Open WebUI as an OpenAI-compatible endpoint.
 - **Bigger brains** — with a 12 GB+ GPU, switch to `qwen2.5:14b`, `gemma3:12b`, or `mistral-nemo`. Nothing else changes.

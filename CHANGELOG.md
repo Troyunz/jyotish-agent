@@ -6,6 +6,61 @@ differ, so re-check any reading you keep.
 
 ---
 
+## 2026-10-04 — namakshar (naming syllables) + Chandra gati (Moon speed) + boundary fix
+
+**⚙️ Small numerical change at nakshatra/pada boundaries only** (see the fix at the end). Birth
+syllables, Moon-speed profile and a sharper birth-time sensitivity figure are now computed, shown in
+the UI and given to the model.
+
+### `core/namakshar.py` (new)
+The 27 × 4 = 108 pada syllables in Devanagari with roman transliteration, plus the edition notes
+where traditions differ (Krittika अ/इ/उ/ए vs आ/ई/ऊ/ए; Rohini वू vs वु). Functions: `syllables_for(lon)`
+→ nakshatra, pada, syllable, roman, all four padas; `lookup(name)` → reverse lookup for a soft name
+cross-check; `table_text()` for the CLI/report; `render(chart)` for the chart text.
+Syllables repeat across nakshatras, so `lookup()` returns a *list* and is never presented as an error
+in the native's name — the classical direction is Moon → syllable, and many families don't follow the
+naming tradition at all.
+
+### `core/chart.py` — `moon_gati()`
+The Moon's daily speed varies ~11.8 to ~15.3 °/day (measured from the bundled ephemeris: apogee
+2026-11-14, perigee 2026-12-24, a 1.30× ratio), so a nakshatra takes **20.9–27.1 h** to cross and a
+sign ~47–62 h. The engine now reports speed, ratio to the mean (13.176 °/day), a five-band
+classification (ati-sheeghra / sheeghra / sama / manda / ati-manda) and — the practically useful part
+— **birth-time sensitivity**: 1 minute of clock error shifts the Vimshottari timeline by
+`speed/1440 × 120/360 × 365.2425` ≈ **1.14 dasha-days** for the test chart. Quoted in the chart text
+and the UI whenever the birth time is uncertain.
+
+### Fixes
+- **Float-boundary bug (behaviour change):** `40.0 // (360/27)` evaluates to `2.0` in binary floating
+  point, so a Moon at *exactly* 40°000′00″ was assigned to **Krittika instead of Rohini** — one
+  nakshatra (and one dasha lord) out. `10.0 // (360/108)` made Ashwini pada 4 read as **pada 3**.
+  All three modules (`chart.nakshatra_of`, `namakshar.syllables_for`, `dasha.vimshottari`) now apply a
+  single 1e-9° (0.0000036″) epsilon up front, so nakshatra, pada and the starting dasha lord can never
+  disagree at a cusp. Verified at all 27 nakshatra and 108 pada cusps. Real cases with birth data to
+  arcsecond precision are essentially never exactly on a cusp, so no existing reading changes — but a
+  cusp-exact chart now falls on the correct side.
+- Devanagari name matching uses the first base character, not `[0]`: 'गे' is *two* code points (ग +
+  vowel sign े), so `'गे'[0]` is only ग and a name like गौतम matched nothing. Now both reduce to ग.
+  Roman names match on their first syllable ("Gautam" → the Ga/Gi/Gu/Ge family).
+- Roman transliteration cannot distinguish श from ष; the Devanagari path is stricter and returns
+  nothing for श, which is honest — श is not one of the 108 syllables.
+
+### Knowledge base
+`vedic_foundations.md` gains **Namakarana** (the naming rite, the Moon→syllable direction, why the
+table is regionally variable) and **Chandra gati** (speed bands, what a fast/slow Moon means for the
+mind, the 21–27 h nakshatra crossing, the birth-time arithmetic). `remedies.md` gains a section
+separating **yogic kriyas from Jyotisha techniques** (Tratak, pranayama/shatkarmas, asana/yama/niyama)
+with contraindications — they are upaya, not astrology. Index: 118 → 130 chunks.
+
+### Tests: 120 → 166 checks
+Table shape and Devanagari content, six published syllable values, a 21,600-point sweep (every
+longitude yields a valid syllable, pada always 1–4), all 27/108 cusp-agreement checks between the
+three modules, reverse lookup in both scripts (including the shared-syllable and unknown-syllable
+cases), the float-boundary cases, gati band thresholds, the 20.9–27.1 h crossing range and the
+dasha-shift formula.
+
+---
+
 ## 2026-10-04 — knowledge base: Ashtakavarga notes + stale-index detection
 
 **No numerical change to charts.** Affects retrieval quality.

@@ -18,6 +18,7 @@ import swisseph as swe
 
 from . import ashtakavarga as av_mod
 from . import dasha as dasha_mod
+from . import namakshar as namakshar_mod
 
 # --------------------------------------------------------------------- constants
 
@@ -208,9 +209,15 @@ def sign_name(s: int) -> str:
 
 
 def nakshatra_of(lon: float) -> dict[str, Any]:
+    # +1e-9 deg (0.0000036 arcsec) makes exact boundaries land in the division that
+    # begins there: 40.000000 deg is the start of Rohini, but 40.0 // (360/27) = 2.0 in
+    # binary floating point, and 10.000000 deg is the start of Ashwini pada 4, but
+    # 10.0 // (360/108) = 2.999... which would otherwise report pada 3. The epsilon is
+    # applied once, up front, so nakshatra and pada can never disagree.
     span = 360.0 / 27.0
-    idx = int(lon // span) % 27
-    within = lon % span
+    x = (lon + 1e-9) % 360.0
+    idx = int(x // span) % 27
+    within = x % span
     pada = int(within // (span / 4)) + 1
     name, lord = NAKSHATRAS[idx]
     return {"name": name, "pada": pada, "lord": lord, "index": idx + 1}
@@ -398,6 +405,45 @@ def panchanga(jd_ut: float, sun_lon: float, moon_lon: float, local_date: date) -
         "karana": karana,
         "vara": VARA[local_date.weekday()],
         "moon_phase_pct": round(diff / 3.6, 1),  # 100 = full moon
+    }
+
+
+MOON_MEAN_SPEED = 13.176  # degrees per day; the Moon's average daily motion
+
+
+def moon_gati(speed: float, year_days: float = 365.2425) -> dict[str, Any]:
+    """Chandra gati - the Moon's daily speed and what it means.
+
+    The Moon's speed varies ~11.8 to ~15.3 deg/day because its orbit is elliptical, so
+    the same nakshatra can take 21 or 27 hours to cross. Classical use: a fast Moon
+    (sheeghra gati) indicates a quick, agile, hasty mind; a slow Moon (manda gati) a
+    steady, deliberate, emotionally heavier one. It is also the single best guide to
+    how much a birth-time error moves the dasha timeline, which is why the days-per-
+    minute figure is computed here.
+    """
+    ratio = speed / MOON_MEAN_SPEED
+    if ratio >= 1.10:
+        label, note = "very fast (ati-sheeghra)", "an unusually quick, restless mind - quick to act and to change course"
+    elif ratio >= 1.03:
+        label, note = "fast (sheeghra)", "a quick, agile mind - grasps quickly, moves on quickly"
+    elif ratio > 0.97:
+        label, note = "average (sama)", "steady mental pace, neither hasty nor slow"
+    elif ratio > 0.90:
+        label, note = "slow (manda)", "a deliberate, steady mind - slower to decide, firm once decided"
+    else:
+        label, note = "very slow (ati-manda)", "an unusually slow, deeply rooted mind - needs time, resists haste"
+    # how far a birth-time error moves the dasha timeline:
+    # 1 minute of clock time moves the Moon by speed/1440 degrees, and 360 deg = 120 years
+    days_per_minute = (speed / 1440.0) * (120.0 / 360.0) * year_days
+    return {
+        "speed": round(speed, 4),
+        "mean_speed": MOON_MEAN_SPEED,
+        "ratio": round(ratio, 3),
+        "gati": label,
+        "note": note,
+        "nakshatra_hours": round(namakshar_mod.NAK_SPAN / speed * 24.0, 2) if speed else None,
+        "sign_hours": round(30.0 / speed * 24.0, 2) if speed else None,
+        "dasha_days_per_minute": round(days_per_minute, 2),
     }
 
 
@@ -652,6 +698,8 @@ def calc_chart(birth: dict[str, Any]) -> dict[str, Any]:
         "yogas": detect_yogas(planets, asc_sign),
         "dashas": dashas,
         "ashtakavarga": av_mod.compute({"planets": planets, "ascendant": {"sign": asc_sign}}),
+        "namakshar": namakshar_mod.syllables_for(planets["Moon"]["lon"]),
+        "moon_profile": moon_gati(planets["Moon"]["speed"], birth.get("dasha_year_days", 365.2425)),
         "dasha_current": dasha_mod.current_periods(dashas),
         "dasha_upcoming": dasha_mod.upcoming_changes(dashas, n=4),
     }
@@ -735,6 +783,18 @@ def render_chart_text(chart: dict[str, Any], when: datetime | None = None, inclu
     pan = chart["panchanga"]
     L.append(f"\nPANCHANGA (birth day): {pan['vara']} | Tithi: {pan['tithi']} | Nitya yoga: {pan['nitya_yoga']} | "
              f"Karana: {pan['karana']} | Moon phase {pan['moon_phase_pct']}%")
+
+    if chart.get("moon_profile"):
+        mp = chart["moon_profile"]
+        L.append(f"\nCHANDRA GATI (Moon's daily speed): {mp['speed']} deg/day = {mp['gati']} "
+                 f"(mean {mp['mean_speed']}, ratio {mp['ratio']})")
+        L.append(f"  Meaning: {mp['note']}")
+        L.append(f"  Nakshatra crossing time: {mp['nakshatra_hours']}h | sign crossing: {mp['sign_hours']}h")
+        L.append(f"  Birth-time sensitivity: 1 minute of clock error shifts the dasha timeline by "
+                 f"~{mp['dasha_days_per_minute']} days - use this when the birth time is uncertain.")
+
+    if chart.get("namakshar"):
+        L.append("\n" + namakshar_mod.render(chart))
 
     if include_vargas:
         keys = ["D3", "D7", "D9", "D10", "D12", "D24", "D30", "D60"]

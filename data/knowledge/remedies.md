@@ -42,6 +42,28 @@ Common practice: 108 repetitions of the mantra daily, or on the planet's day; a 
 - **Obstacles in career (10th house afflictions)** - Sun worship (water offering at sunrise - arghya), service to the workplace and colleagues, honesty in accounts and contracts, work-related skill development (karma upaya).
 - **Marriage delay** - worship of the 7th house deity and of Gauri/Parvati, Jupiter and Venus remedies, respect toward marriage-minded family elders, and practical openness (the tradition holds that remedies remove obstacles, not that they force events).
 
+## Yogic kriyas prescribed as remedies (not Jyotisha techniques)
+
+Some practices prescribed by astrologers come from **Yoga**, not from Jyotisha itself. They are
+legitimate *upayas* while remaining outside the astrological canon - say so when prescribing them, so
+the person knows what they are receiving and from which tradition.
+
+- **Tratak (fixed gazing)** - one of the six shatkarmas of Hatha Yoga and a concentration practice in
+  Raja Yoga; classically a steady flame or a distant point is gazed at without blinking. Astrologers
+  commonly prescribe it for a weak or afflicted **Moon** (restlessness, anxiety, sleeplessness),
+  for **Rahu/Ketu** afflictions (scattered attention, obsession), and for the 6th/8th/12th-house
+  mental strain. Standard beginner form: 1-2 minutes, eyes then closed and the after-image held in
+  the mind's eye, building slowly; done facing east, ideally at dawn. It should not be practised with
+  eye disease, glaucoma, epilepsy, migraine in an active phase, or while pregnant without medical
+  advice, and never to the point of eye strain. Its purpose here is steadying the mind, not
+  occult power.
+- **Pranayama and the shatkarmas** (neti, nauli, kapalabhati and the rest) - likewise Yoga, and
+  likewise prescribed remedially for planetary afflictions of the mind and body. The same caution
+  applies: these are practices with real physiological effects and belong with a teacher, not a
+  chart reading.
+- **Asana, yama and niyama** - the classical texts treat right living itself as the deepest remedy;
+  the planetary "remedy" is often simply restoring routine and conduct.
+
 ## Cautions the agent must always add
 
 - Gemstones and yantras can be expensive; a poor fitting can, by tradition, aggravate the matter. Recommend them only for a benefic planet, after consulting a qualified astrologer or jeweller-priest, and with the option of a trial period.

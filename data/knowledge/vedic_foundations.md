@@ -83,6 +83,55 @@ All grahas fully aspect the 7th house from themselves. Special aspects: **Mars**
 
 Each nakshatra spans 13°20' and is divided into four padas (quarters) of 3°20'. The navamsa sign is derived from the pada: Ashwini pada 1 = Aries navamsa, and so on. Nakshatra of the Moon (janma nakshatra) determines the Vimshottari dasha sequence, and the pada refines the personality considerably. Nakshatras are classified by gana (deva/manushya/rakshasa), yoni, nadi and varna - all used in marriage matching.
 
+## Namakarana - the birth name from the Moon's pada (namakshar)
+
+Each nakshatra spans 13°20' and is divided into four padas of 3°20'. The sages assigned a
+**naming syllable (namakshar)** to each of the 27 x 4 = **108 padas**. At the namakarana ceremony the
+child is given a name beginning with the syllable of the pada the Moon occupied at birth, so that
+the name carries the sound-vibration (spanda) of the birth nakshatra for life.
+
+The direction of the mapping is important: **the Moon's position determines the syllable**, and the
+syllable is then chosen for the name. It is not used to derive the Moon's position. Where the Moon
+sits near a pada boundary, an accurate birth time is essential - a pada is only 3°20', which the
+Moon crosses in roughly six hours.
+
+A few examples: Ashwini pada 1 = चु (Chu); Rohini pada 1 = ओ (O); Magha pada 1 = मा (Ma); Mula pada
+4 = भी (Bhi); Revati pada 4 = ची (Chi); Dhanishta pada 4 = गे (Ge). The same syllable recurs in
+different nakshatras (for example ता / Ta, and दा / Da), so a name alone rarely identifies a pada
+with certainty.
+
+Practical cautions when a person asks about their name:
+- Many families today do not follow the naming tradition, use a family name, or were given a
+  modern spelling. The chart is not "wrong" and neither is the name.
+- The reverse lookup (name -> pada) is therefore only a soft cross-check, never a correction.
+- What the namakshar *is* reliable for: opening the nakshatra's own remedies, choosing a name for a
+  newborn, and - in the classical texts - the practice of japa using the janma nakshatra's deity
+  and its syllable.
+
+## Chandra gati - the Moon's speed and the mind
+
+The Moon travels about 13°10' per day on average, but because its orbit is elliptical its actual
+speed varies from roughly **11.8° to 15.3° per day** (a ratio of about 1.3). Consequently a
+nakshatra takes between about **21 hours and 27 hours** to cross, and a sign between about 47 and 62
+hours. The classical texts describe the resulting temperament:
+
+- **Sheeghra gati (fast Moon)** - a quick, agile, alert mind; grasp things fast, act fast, and move
+  on quickly. The risk is haste, impatience and fickleness; a fast Moon needs anchoring practices.
+- **Manda gati (slow Moon)** - a deliberate, steady, deeply rooted mind; slower to decide but firm
+  once decided, often more emotionally heavy or retentive. The risk is inertia; it benefits from
+  momentum and deadlines.
+- **Sama gati (average)** - a balanced mental pace.
+
+The Moon's speed is also the key to **birth-time sensitivity**, which is the most practically useful
+consequence. The whole 360° zodiac maps to the 120-year Vimshottari cycle, so:
+
+  shift in dasha dates per minute of birth-time error = (moon speed / 1440) x (120/360) x 365.2425
+
+At an average speed this is about **1.1 days of dasha shift per minute** of clock error - roughly 66
+days (over two months) for every hour of error. For a fast Moon it is worse; for a slow Moon
+slightly better. Every dasha-based prediction must be phrased as a window when the birth time is not
+certain, and the tool computes this figure for each chart so the agent can say so explicitly.
+
 ## Rashi and nakshatra in practice
 
 - **Janma rashi** (Moon sign) is what traditional Indian astrology uses for daily transits and for matching.
