@@ -1,0 +1,49 @@
+# ============================================================
+#  Jyotish Agent configuration
+#  Edit this file to change brain, models, or astrological settings.
+#  API keys go in the .env file (never here).
+# ============================================================
+
+# ---------- LLM brain ----------
+backend: local            # local | gemini | openai | anthropic
+auto_fallback: true       # if the local model errors out, retry with fallback_backend
+fallback_backend: gemini  # needs GEMINI_API_KEY in .env
+
+local:
+  host: http://localhost:11434
+  # Tested good fit for GTX 1650 4GB + 16GB RAM. Other options:
+  #   llama3.2:3b                 -> fully on GPU, fastest, lighter knowledge
+  #   qwen2.5:7b-instruct-q4_K_M  -> best quality/size balance, partial GPU offload
+  model: qwen2.5:7b-instruct-q4_K_M
+  num_gpu: 24               # layers sent to GPU. Lower (e.g. 16) if you see CUDA OOM.
+  num_ctx: 8192             # context window; 8192 is a good balance for 16GB RAM
+
+api:
+  gemini:
+    model: gemini-2.5-flash        # free tier available, no card needed
+  openai:
+    model: gpt-4o-mini             # any model id your account has access to
+  anthropic:
+    model: claude-sonnet-4-5       # any model id your account has access to
+
+generation:
+  temperature: 0.4          # 0.3-0.5 keeps astrology answers grounded
+  max_tokens: 1600
+
+# ---------- Jyotish / astrology settings ----------
+jyotish:
+  ayanamsa: lahiri          # lahiri | raman | krishnamurti | yukteshwar | fagan_bradley
+  node: true                # true | mean   (Rahu / Ketu)
+  house_system: whole       # whole (classical Parashari) | placidus | equal | porphyry
+  dasha_year_days: 365.2425 # year length used for Vimshottari dates
+  include_vargas: true      # compute divisional charts (D2..D60)
+  include_transits: true    # compute current Jupiter/Saturn/Rahu gochara + Sade Sati
+
+# ---------- Knowledge base (RAG) ----------
+rag:
+  enabled: true
+  top_k: 5                  # how many classical passages to feed the model per question
+  embed_provider: auto      # auto | ollama | openai | bm25
+  embed_model: nomic-embed-text
+  knowledge_dir: data/knowledge
+  index_path: data/knowledge_index.json

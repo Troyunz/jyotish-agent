@@ -1,0 +1,293 @@
+city,region,country,lat,lon
+Mumbai,Maharashtra,India,19.076,72.8777
+Delhi,Delhi,India,28.6139,77.209
+New Delhi,Delhi,India,28.6139,77.209
+Bengaluru,Karnataka,India,12.9716,77.5946
+Bangalore,Karnataka,India,12.9716,77.5946
+Hyderabad,Telangana,India,17.385,78.4867
+Secunderabad,Telangana,India,17.4399,78.4983
+Chennai,Tamil Nadu,India,13.0827,80.2707
+Kolkata,West Bengal,India,22.5726,88.3639
+Pune,Maharashtra,India,18.5204,73.8567
+Ahmedabad,Gujarat,India,23.0225,72.5714
+Surat,Gujarat,India,21.1702,72.8311
+Jaipur,Rajasthan,India,26.9124,75.7873
+Lucknow,Uttar Pradesh,India,26.8467,80.9462
+Kanpur,Uttar Pradesh,India,26.4499,80.3319
+Nagpur,Maharashtra,India,21.1458,79.0882
+Indore,Madhya Pradesh,India,22.7196,75.8577
+Bhopal,Madhya Pradesh,India,23.2599,77.4126
+Patna,Bihar,India,25.5941,85.1376
+Vadodara,Gujarat,India,22.3072,73.1812
+Ludhiana,Punjab,India,30.901,75.8573
+Agra,Uttar Pradesh,India,27.1767,78.0081
+Nashik,Maharashtra,India,19.9975,73.7898
+Varanasi,Uttar Pradesh,India,25.3176,82.9739
+Amritsar,Punjab,India,31.634,74.8723
+Prayagraj,Uttar Pradesh,India,25.4358,81.8463
+Ranchi,Jharkhand,India,23.3441,85.3096
+Coimbatore,Tamil Nadu,India,11.0168,76.9558
+Jabalpur,Madhya Pradesh,India,23.1815,79.9864
+Gwalior,Madhya Pradesh,India,26.2183,78.1828
+Vijayawada,Andhra Pradesh,India,16.5062,80.648
+Jodhpur,Rajasthan,India,26.2389,73.0243
+Madurai,Tamil Nadu,India,9.9252,78.1198
+Raipur,Chhattisgarh,India,21.2514,81.6296
+Kota,Rajasthan,India,25.2138,75.8648
+Chandigarh,Chandigarh,India,30.7333,76.7794
+Guwahati,Assam,India,26.1445,91.7362
+Mysuru,Karnataka,India,12.2958,76.6394
+Mysore,Karnataka,India,12.2958,76.6394
+Bareilly,Uttar Pradesh,India,28.367,79.4304
+Tiruchirappalli,Tamil Nadu,India,10.7905,78.7047
+Trichy,Tamil Nadu,India,10.7905,78.7047
+Jalandhar,Punjab,India,31.326,75.5762
+Bhubaneswar,Odisha,India,20.2961,85.8245
+Salem,Tamil Nadu,India,11.6643,78.146
+Warangal,Telangana,India,17.9689,79.5941
+Guntur,Andhra Pradesh,India,16.3067,80.4365
+Bhiwandi,Maharashtra,India,19.3009,73.0483
+Saharanpur,Uttar Pradesh,India,29.968,77.5552
+Gorakhpur,Uttar Pradesh,India,26.7606,83.3732
+Bikaner,Rajasthan,India,28.0229,73.3119
+Amravati,Maharashtra,India,20.932,77.7523
+Noida,Uttar Pradesh,India,28.5355,77.391
+Jamshedpur,Jharkhand,India,22.8046,86.2029
+Bhilai,Chhattisgarh,India,21.1938,81.3509
+Cuttack,Odisha,India,20.4625,85.883
+Firozabad,Uttar Pradesh,India,27.1592,78.3957
+Kochi,Kerala,India,9.9312,76.2673
+Cochin,Kerala,India,9.9312,76.2673
+Nellore,Andhra Pradesh,India,14.4426,79.9865
+Bhavnagar,Gujarat,India,21.7645,72.1519
+Dehradun,Uttarakhand,India,30.3165,78.0322
+Durgapur,West Bengal,India,23.5204,87.3119
+Asansol,West Bengal,India,23.6739,86.9524
+Rourkela,Odisha,India,22.2604,84.8536
+Nanded,Maharashtra,India,19.1383,77.321
+Kolhapur,Maharashtra,India,16.705,74.2433
+Ajmer,Rajasthan,India,26.4499,74.6399
+Akola,Maharashtra,India,20.7002,77.0082
+Kalaburagi,Karnataka,India,17.3297,76.8343
+Jamnagar,Gujarat,India,22.4707,70.0577
+Ujjain,Madhya Pradesh,India,23.1765,75.7885
+Siliguri,West Bengal,India,26.7271,88.3953
+Jhansi,Uttar Pradesh,India,25.4484,78.5685
+Jammu,Jammu and Kashmir,India,32.7266,74.857
+Sangli,Maharashtra,India,16.8524,74.5815
+Mangaluru,Karnataka,India,12.9141,74.856
+Mangalore,Karnataka,India,12.9141,74.856
+Erode,Tamil Nadu,India,11.341,77.7172
+Belagavi,Karnataka,India,15.8497,74.4977
+Tirunelveli,Tamil Nadu,India,8.7139,77.7567
+Malegaon,Maharashtra,India,20.5579,74.5287
+Gaya,Bihar,India,24.7955,85.0002
+Thiruvananthapuram,Kerala,India,8.5241,76.9366
+Trivandrum,Kerala,India,8.5241,76.9366
+Udaipur,Rajasthan,India,24.5854,73.7125
+Kakinada,Andhra Pradesh,India,16.9891,82.2475
+Davanagere,Karnataka,India,14.4644,75.9218
+Kozhikode,Kerala,India,11.2588,75.7804
+Calicut,Kerala,India,11.2588,75.7804
+Kurnool,Andhra Pradesh,India,15.8281,78.0373
+Rajahmundry,Andhra Pradesh,India,17.0005,81.804
+Bokaro,Jharkhand,India,23.6693,86.1511
+Ballari,Karnataka,India,15.1394,76.9214
+Patiala,Punjab,India,30.3398,76.3869
+Agartala,Tripura,India,23.8315,91.2868
+Bhagalpur,Bihar,India,25.2425,86.9842
+Muzaffarnagar,Uttar Pradesh,India,29.4727,77.7085
+Latur,Maharashtra,India,18.4088,76.5604
+Dhule,Maharashtra,India,20.9042,74.7749
+Rohtak,Haryana,India,28.8955,76.6066
+Bhilwara,Rajasthan,India,25.3407,74.6313
+Berhampur,Odisha,India,19.315,84.7941
+Muzaffarpur,Bihar,India,26.1209,85.3647
+Ahmednagar,Maharashtra,India,19.0948,74.748
+Mathura,Uttar Pradesh,India,27.4924,77.6737
+Kollam,Kerala,India,8.8932,76.6141
+Kadapa,Andhra Pradesh,India,14.4673,78.8242
+Sambalpur,Odisha,India,21.4669,83.9812
+Bilaspur,Chhattisgarh,India,22.0797,82.1409
+Shahjahanpur,Uttar Pradesh,India,27.8815,79.922
+Satara,Maharashtra,India,17.6805,74.0183
+Vijayapura,Karnataka,India,16.8302,75.71
+Shivamogga,Karnataka,India,13.9299,75.5681
+Chandrapur,Maharashtra,India,19.9615,79.2961
+Junagadh,Gujarat,India,21.5222,70.4579
+Thrissur,Kerala,India,10.5276,76.2144
+Alwar,Rajasthan,India,27.553,76.6346
+Nizamabad,Telangana,India,18.6725,78.0941
+Parbhani,Maharashtra,India,19.2704,76.7601
+Tumakuru,Karnataka,India,13.3392,77.114
+Khammam,Telangana,India,17.2473,80.1514
+Panipat,Haryana,India,29.3909,76.9635
+Darbhanga,Bihar,India,26.152,85.897
+Aizawl,Mizoram,India,23.7271,92.7176
+Dewas,Madhya Pradesh,India,22.9676,76.0534
+Karnal,Haryana,India,29.6857,76.9905
+Bathinda,Punjab,India,30.211,74.9455
+Jalna,Maharashtra,India,19.841,75.8864
+Eluru,Andhra Pradesh,India,16.7107,81.1039
+Purnia,Bihar,India,25.7771,87.4753
+Satna,Madhya Pradesh,India,24.6005,80.8322
+Sonipat,Haryana,India,28.9931,77.0151
+Sagar,Madhya Pradesh,India,23.8388,78.7378
+Durg,Chhattisgarh,India,21.1904,81.2849
+Imphal,Manipur,India,24.817,93.9368
+Ratlam,Madhya Pradesh,India,23.3315,75.0367
+Karimnagar,Telangana,India,18.4386,79.1288
+Anantapur,Andhra Pradesh,India,14.6819,77.6006
+Etawah,Uttar Pradesh,India,26.7855,79.015
+Bharatpur,Rajasthan,India,27.217,77.49
+Begusarai,Bihar,India,25.418,86.127
+Gandhinagar,Gujarat,India,23.2156,72.6369
+Srinagar,Jammu and Kashmir,India,34.0837,74.7973
+Leh,Ladakh,India,34.1526,77.5771
+Shimla,Himachal Pradesh,India,31.1048,77.1734
+Manali,Himachal Pradesh,India,32.2396,77.1887
+Rishikesh,Uttarakhand,India,30.0869,78.2676
+Haridwar,Uttarakhand,India,29.9457,78.1642
+Vrindavan,Uttar Pradesh,India,27.582,77.7
+Tirupati,Andhra Pradesh,India,13.6288,79.4192
+Puducherry,Puducherry,India,11.9416,79.8083
+Pondicherry,Puducherry,India,11.9416,79.8083
+Rameswaram,Tamil Nadu,India,9.2876,79.3129
+Kanyakumari,Tamil Nadu,India,8.0883,77.5385
+Shirdi,Maharashtra,India,19.7645,74.4764
+Somnath,Gujarat,India,20.888,70.401
+Dwarka,Gujarat,India,22.2394,68.9678
+Puri,Odisha,India,19.8135,85.8312
+Gangtok,Sikkim,India,27.3389,88.6065
+Shillong,Meghalaya,India,25.5788,91.8933
+Itanagar,Arunachal Pradesh,India,27.0844,93.6053
+Kohima,Nagaland,India,25.6751,94.1086
+Ayodhya,Uttar Pradesh,India,26.7996,82.2044
+Bodh Gaya,Bihar,India,24.6961,84.9869
+Vellore,Tamil Nadu,India,12.9165,79.1325
+Thanjavur,Tamil Nadu,India,10.787,79.1378
+Udupi,Karnataka,India,13.3409,74.7421
+Hubballi,Karnataka,India,15.3647,75.124
+Hosur,Tamil Nadu,India,12.7409,77.8253
+Visakhapatnam,Andhra Pradesh,India,17.6868,83.2185
+Tirupur,Tamil Nadu,India,11.1085,77.3411
+Gurugram,Haryana,India,28.4595,77.0266
+Faridabad,Haryana,India,28.4089,77.3178
+Ghaziabad,Uttar Pradesh,India,28.6692,77.4538
+Meerut,Uttar Pradesh,India,28.9845,77.7064
+Moradabad,Uttar Pradesh,India,28.8386,78.7733
+Aligarh,Uttar Pradesh,India,27.8974,78.088
+Jhunjhunu,Rajasthan,India,28.1289,75.3995
+Hisar,Haryana,India,29.1492,75.7217
+Ambala,Haryana,India,30.3752,76.7821
+Rudrapur,Uttarakhand,India,28.9845,79.4006
+Sikar,Rajasthan,India,27.6094,75.1399
+Bhilai Nagar,Chhattisgarh,India,21.2094,81.3784
+Dubai,Dubai,United Arab Emirates,25.2048,55.2708
+Abu Dhabi,Abu Dhabi,United Arab Emirates,24.4539,54.3773
+Sharjah,Sharjah,United Arab Emirates,25.3463,55.4209
+Doha,Doha,Qatar,25.2854,51.531
+Riyadh,Riyadh,Saudi Arabia,24.7136,46.6753
+Muscat,Muscat,Oman,23.588,58.3829
+Kuwait City,Al Asimah,Kuwait,29.3759,47.9774
+Manama,Manama,Bahrain,26.2285,50.586
+Tehran,Tehran,Iran,35.6892,51.389
+Karachi,Sindh,Pakistan,24.8607,67.0011
+Lahore,Punjab,Pakistan,31.5204,74.3587
+Islamabad,Islamabad,Pakistan,33.6844,73.0479
+Dhaka,Dhaka,Bangladesh,23.8103,90.4125
+Kathmandu,Bagmati,Nepal,27.7172,85.324
+Colombo,Western,Sri Lanka,6.9271,79.8612
+Kandy,Central,Sri Lanka,7.2906,80.6337
+Yangon,Yangon,Myanmar,16.8661,96.1951
+Bangkok,Bangkok,Thailand,13.7563,100.5018
+Singapore,Singapore,Singapore,1.3521,103.8198
+Kuala Lumpur,Kuala Lumpur,Malaysia,3.139,101.6869
+Jakarta,Jakarta,Indonesia,-6.2088,106.8456
+Denpasar,Bali,Indonesia,-8.6705,115.2126
+Manila,Metro Manila,Philippines,14.5995,120.9842
+Hong Kong,Hong Kong,Hong Kong,22.3193,114.1694
+Shanghai,Shanghai,China,31.2304,121.4737
+Beijing,Beijing,China,39.9042,116.4074
+Tokyo,Tokyo,Japan,35.6762,139.6503
+Osaka,Osaka,Japan,34.6937,135.5023
+Seoul,Seoul,South Korea,37.5665,126.978
+Sydney,New South Wales,Australia,-33.8688,151.2093
+Melbourne,Victoria,Australia,-37.8136,144.9631
+Perth,Western Australia,Australia,-31.9505,115.8605
+Brisbane,Queensland,Australia,-27.4698,153.0251
+Auckland,Auckland,New Zealand,-36.8485,174.7633
+London,England,United Kingdom,51.5074,-0.1278
+Birmingham,England,United Kingdom,52.4862,-1.8904
+Manchester,England,United Kingdom,53.4808,-2.2426
+Leicester,England,United Kingdom,52.6369,-1.1398
+Edinburgh,Scotland,United Kingdom,55.9533,-3.1883
+Dublin,Leinster,Ireland,53.3498,-6.2603
+Paris,Ile-de-France,France,48.8566,2.3522
+Berlin,Berlin,Germany,52.52,13.405
+Frankfurt,Hesse,Germany,50.1109,8.6821
+Munich,Bavaria,Germany,48.1351,11.582
+Amsterdam,North Holland,Netherlands,52.3676,4.9041
+Brussels,Brussels,Belgium,50.8503,4.3517
+Zurich,Zurich,Switzerland,47.3769,8.5417
+Geneva,Geneva,Switzerland,46.2044,6.1432
+Vienna,Vienna,Austria,48.2082,16.3738
+Rome,Lazio,Italy,41.9028,12.4964
+Milan,Lombardy,Italy,45.4642,9.19
+Madrid,Madrid,Spain,40.4168,-3.7038
+Barcelona,Catalonia,Spain,41.3874,2.1686
+Lisbon,Lisbon,Portugal,38.7223,-9.1393
+Athens,Attica,Greece,37.9838,23.7275
+Stockholm,Stockholm,Sweden,59.3293,18.0686
+Oslo,Oslo,Norway,59.9139,10.7522
+Copenhagen,Capital Region,Denmark,55.6761,12.5683
+Helsinki,Uusimaa,Finland,60.1699,24.9384
+Warsaw,Masovia,Poland,52.2297,21.0122
+Prague,Prague,Czechia,50.0755,14.4378
+Budapest,Budapest,Hungary,47.4979,19.0402
+Moscow,Moscow,Russia,55.7558,37.6173
+Kyiv,Kyiv,Ukraine,50.4501,30.5234
+Istanbul,Istanbul,Turkey,41.0082,28.9784
+Cairo,Cairo,Egypt,30.0444,31.2357
+Nairobi,Nairobi,Kenya,-1.2921,36.8219
+Lagos,Lagos,Nigeria,6.5244,3.3792
+Johannesburg,Gauteng,South Africa,-26.2041,28.0473
+Cape Town,Western Cape,South Africa,-33.9249,18.4241
+Durban,KwaZulu-Natal,South Africa,-29.8587,31.0218
+Casablanca,Casablanca-Settat,Morocco,33.5731,-7.5898
+New York,New York,United States,40.7128,-74.006
+Jersey City,New Jersey,United States,40.7178,-74.0431
+Edison,New Jersey,United States,40.5187,-74.4121
+Toronto,Ontario,Canada,43.6532,-79.3832
+Vancouver,British Columbia,Canada,49.2827,-123.1207
+Calgary,Alberta,Canada,51.0447,-114.0719
+Montreal,Quebec,Canada,45.5017,-73.5673
+Chicago,Illinois,United States,41.8781,-87.6298
+Houston,Texas,United States,29.7604,-95.3698
+Dallas,Texas,United States,32.7767,-96.797
+Austin,Texas,United States,30.2672,-97.7431
+San Francisco,California,United States,37.7749,-122.4194
+San Jose,California,United States,37.3382,-121.8863
+Los Angeles,California,United States,34.0522,-118.2437
+Seattle,Washington,United States,47.6062,-122.3321
+Boston,Massachusetts,United States,42.3601,-71.0589
+Washington,District of Columbia,United States,38.9072,-77.0369
+Atlanta,Georgia,United States,33.749,-84.388
+Miami,Florida,United States,25.7617,-80.1918
+Phoenix,Arizona,United States,33.4484,-112.074
+Denver,Colorado,United States,39.7392,-104.9903
+Detroit,Michigan,United States,42.3314,-83.0458
+Minneapolis,Minnesota,United States,44.9778,-93.265
+Philadelphia,Pennsylvania,United States,39.9526,-75.1652
+San Diego,California,United States,32.7157,-117.1611
+Portland,Oregon,United States,45.5152,-122.6784
+Las Vegas,Nevada,United States,36.1699,-115.1398
+Raleigh,North Carolina,United States,35.7796,-78.6382
+Columbus,Ohio,United States,39.9612,-82.9988
+Mexico City,Mexico City,Mexico,19.4326,-99.1332
+Sao Paulo,Sao Paulo,Brazil,-23.5505,-46.6333
+Rio de Janeiro,Rio de Janeiro,Brazil,-22.9068,-43.1729
+Buenos Aires,Buenos Aires,Argentina,-34.6037,-58.3816
+Lima,Lima,Peru,-12.0464,-77.0428
+Bogota,Bogota,Colombia,4.711,-74.0721
+Santiago,Santiago Metropolitan,Chile,-33.4489,-70.6693

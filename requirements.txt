@@ -1,0 +1,27 @@
+# ============================================================
+#  Jyotish Agent - Python dependencies
+#  Install:  pip install -r requirements.txt
+# ============================================================
+
+# --- Chart mathematics (Swiss Ephemeris, same engine used by professional software) ---
+pyswisseph>=2.10.3.2
+
+# --- Birth place -> timezone conversion (offline, ships its own data) ---
+timezonefinder>=6.5
+tzdata                       # needed on Windows for zoneinfo
+
+# --- Vector math for the knowledge base (RAG) ---
+numpy>=1.26
+
+# --- One client for every brain: Ollama (local), Gemini, OpenAI, Anthropic ---
+openai>=1.40
+
+# --- Web chat interface ---
+streamlit>=1.36
+
+# --- Config & environment ---
+pyyaml>=6.0
+python-dotenv>=1.0
+
+# --- Optional: to ingest PDF books into the knowledge base ---
+pypdf>=4.2

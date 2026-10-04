@@ -1,0 +1,21 @@
+# Streamlit configuration for the Jyotish Agent
+#
+# 0.0.0.0 lets you open the app from another device on your home network
+# (e.g. your phone). If you only use this PC, you can change it to 127.0.0.1.
+[server]
+address = "0.0.0.0"
+port = 8501
+headless = true
+
+# CORS/XSRF are disabled so the app also works when it is reached through a
+# tunnel or proxy (e.g. a hosted preview). Safe on a home machine; if you ever
+# expose this to the public internet, re-enable both.
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"
+primaryColor = "#d4a017"

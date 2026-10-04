@@ -1,0 +1,15 @@
+# local
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# secrets - never commit these
+.env
+
+# generated index and transcripts
+data/knowledge_index.json
+transcript_*.json
+
+# streamlit
+.streamlit/secrets.toml
