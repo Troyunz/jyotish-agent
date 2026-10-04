@@ -207,6 +207,7 @@ Cross-check one chart against AstroSage / Jagannatha Hora / Parashara's Light (s
 | The model invents quotes | Rebuild the knowledge index (`python build_index.py`) so real references are retrieved, and ask it directly: "cite only from the references provided". |
 | Wrong timezone / DST | Use the sidebar's *Manual coordinates* section and type the IANA timezone (e.g. `America/New_York`, `Asia/Kolkata`). |
 | Output mixes in Chinese characters | A quirk of some Qwen builds. Use `llama3.2:3b`, `gemma3:4b`, or the Gemini fallback. |
+| `ModuleNotFoundError: No module named 'httpx'` (or `pandas`) | Your install predates a dependency fix — `openai` 3.x now pulls `httpx2` instead of `httpx`. Re-run `pip install -r requirements.txt`, or `pip install "httpx>=0.27,<1" "pandas>=2.0"`. |
 
 ---
 

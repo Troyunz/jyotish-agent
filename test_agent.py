@@ -4,6 +4,7 @@ Run:  python test_agent.py        (no network, no LLM needed)
 """
 from __future__ import annotations
 
+import re
 import sys
 from datetime import date, datetime
 from pathlib import Path
@@ -209,6 +210,39 @@ def main() -> int:
     check("marriage topic detected in agent", agent.last_topic == "marriage", agent.last_topic)
     check("marriage checklist text injected", "D9 (Navamsa)" in msgs2[0]["content"])
     check("user message last", msgs[-1]["role"] == "user")
+
+    print("\ndependency declaration (regression guard):")
+    # A fresh install must work. This caught a real bug: openai 3.x switched from
+    # "httpx" to "httpx2", so an undeclared `import httpx` broke every new install.
+    import ast
+
+    NON_DECLARED_OK = {"core", "app"}          # local modules
+    ALIASES = {"swisseph": "pyswisseph", "yaml": "pyyaml", "dotenv": "python-dotenv"}
+    req_file = Path(__file__).parent / "requirements.txt"
+    declared = set()
+    for line in req_file.read_text(encoding="utf-8").splitlines():
+        line = line.split("#")[0].strip()
+        if line:
+            declared.add(re.split(r"[<>=!~;\[]", line)[0].strip().lower())
+    imports: set[str] = set()
+    for src in Path(__file__).parent.rglob("*.py"):
+        if ".venv" in src.parts or "site-packages" in src.parts:
+            continue
+        try:
+            tree = ast.parse(src.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for a in node.names:
+                    imports.add(a.name.split(".")[0])
+            elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+                imports.add(node.module.split(".")[0])
+    third_party = {i for i in imports
+                   if i not in sys.stdlib_module_names and i not in NON_DECLARED_OK}
+    missing = {ALIASES.get(i, i).lower() for i in third_party} - declared
+    check("every third-party import is declared in requirements.txt", not missing,
+          f"undeclared: {sorted(missing)}")
 
     print(f"\n{'-' * 46}\n{PASS} passed, {FAIL} failed\n{'-' * 46}")
     return 1 if FAIL else 0

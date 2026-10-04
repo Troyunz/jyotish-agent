@@ -1,9 +1,13 @@
 # ============================================================
 #  Jyotish Agent - Python dependencies
 #  Install:  pip install -r requirements.txt
+#
+#  Every package imported directly by the code is listed here
+#  explicitly, so a fresh install works even when upstream
+#  packages change their own dependency trees.
 # ============================================================
 
-# --- Chart mathematics (Swiss Ephemeris, same engine used by professional software) ---
+# --- Chart mathematics (Swiss Ephemeris, same engine professional software uses) ---
 pyswisseph>=2.10.3.2
 
 # --- Birth place -> timezone conversion (offline, ships its own data) ---
@@ -13,11 +17,20 @@ tzdata                       # needed on Windows for zoneinfo
 # --- Vector math for the knowledge base (RAG) ---
 numpy>=1.26
 
-# --- One client for every brain: Ollama (local), Gemini, OpenAI, Anthropic ---
-openai>=1.40
+# --- HTTP client, used directly for Ollama (/api/chat, /api/embeddings) ---
+# Pinned explicitly: openai 3.x now depends on "httpx2" (a renamed fork) and no
+# longer pulls in "httpx", so without this line a fresh install has no httpx and
+# the agent fails to import.
+httpx>=0.27,<1
 
-# --- Web chat interface ---
+# --- One client for every cloud brain: Gemini, OpenAI, Anthropic ---
+# Held below 3.x: this project is written and tested against the 1.x/2.x
+# chat-completions API surface (max_tokens, chat.completions.create).
+openai>=1.40,<3
+
+# --- Web chat interface (and the tables it renders) ---
 streamlit>=1.36
+pandas>=2.0
 
 # --- Config & environment ---
 pyyaml>=6.0
