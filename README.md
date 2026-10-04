@@ -17,6 +17,8 @@ Built and tested for: Windows 11 · Ryzen 5 4600H · 16 GB RAM · GTX 1650 4 GB 
 | **Gochara (transits)** | Current Jupiter/Saturn/Rahu positions counted from the natal Moon, **Sade Sati** phase detection, Ashtama/Ardha-Ashtama Shani |
 | **Ashtakavarga** | BAV + **SAV bindu strength** per sign and bhava (validated against the classical 337 total) — grades every transit by the ground it lands on |
 | **Answer self-check** | Every chart claim in an answer is verified against the computed data; contradictions are shown with a one-click corrective regeneration |
+| **JHora-parity positions** | `position_mode: true` uses the true-position flag set verified against desktop Jagannatha Hora (≤1″), reported in every chart; switchable to apparent positions |
+| **Bundled ephemeris** | Official Astrodienst `.se1` data files ship with the repo — no silent Moshier fallback, and the engine reports which ephemeris actually served the calculation |
 | **Topic-routed analysis** | Questions are classified (marriage / career / wealth / children / health / education / transit / spirituality) and each gets the tradition's own checklist for that subject |
 | **Panchanga** | Tithi, nitya yoga, karana, vara, Moon phase, sunrise/sunset for the birth location |
 | **Classical RAG** | Hybrid BM25 + embedding search over classical texts and notes in `data/knowledge/`, cited in the answers (BPHS, Phaladeepika, Saravali, Brihat Jataka, Jataka Parijata, Uttara Kalamrita study notes included) |
@@ -36,7 +38,7 @@ pip install -r requirements.txt
 ollama pull qwen2.5:7b-instruct-q4_K_M     # or llama3.2:3b for speed
 ollama pull nomic-embed-text
 
-python test_agent.py        # expect: 48 passed, 0 failed
+python test_agent.py        # expect: 107 passed, 0 failed
 python build_index.py       # builds the classical-text index
 streamlit run app.py        # open http://localhost:8501
 ```
@@ -52,8 +54,9 @@ jyotish-agent/
 ├── app.py                    Streamlit web UI (Chat · Chart · Dashas · Knowledge base · Export)
 ├── cli.py                    Terminal chat with commands (/chart /dashas /sources /backend /export)
 ├── build_index.py            Rebuilds the classical-text index
-├── test_agent.py             48 self-checks (ephemeris, dasha, geo, RAG, prompt assembly)
-├── config.yaml               Brain, model, ayanamsa, house system, RAG settings
+├── test_agent.py             107 self-checks (ephemeris, golden chart, dasha, geo, RAG, verifier)
+├── config.yaml               Brain, model, ayanamsa, positions, ephemeris, RAG settings
+├── CHANGELOG.md              Numerical changes and fixes worth knowing about
 ├── .env.example              API keys (copy to .env — never commit)
 ├── requirements.txt
 ├── run.bat                   Windows double-click launcher
@@ -67,10 +70,33 @@ jyotish-agent/
 │   └── agent.py              Orchestration: birth details → chart → retrieval → prompt → streamed answer
 ├── data/
 │   ├── cities.csv            292 cities with coordinates (India + major world cities)
+│   ├── ephe/                 Official Swiss Ephemeris .se1 files (planets, Moon, asteroids)
 │   ├── knowledge/            Classical study notes (RAG corpus) — add your own books here
 │   └── knowledge_index.json  Generated index
 └── .streamlit/config.toml    UI theme + server binding
 ```
+
+---
+
+## Position convention and ephemeris (accuracy)
+
+Two settings determine the exact numbers in your chart. Both are visible in the chart output and in
+the UI, so nothing is hidden:
+
+- **`position_mode: true`** (default) uses `SEFLG_TRUEPOS | NONUT | NOGDEFL` — true geometric
+  positions. This is the flag set verified against desktop **Jagannatha Hora** (agreement within
+  1″) by the `vedic-astro-skills` project, after they measured a 0–60″ discrepancy between the two
+  baselines. Measured difference versus apparent positions: **Mars 33.8″, Saturn 27.0″, Sun 20.8″**,
+  Moon under 1″. Set `apparent` to match software that uses apparent positions.
+- **`ephe_path: data/ephe`** loads the official Astrodienst `.se1` files shipped in this repo. Without
+  them, `pyswisseph` silently falls back to the built-in **Moshier** ephemeris — a different
+  computation (measured difference up to 0.45″). The engine reads the flags returned by the Swiss
+  Ephemeris to report which one actually served the calculation; check the `EPHEMERIS:` line in the
+  Chart tab, or run `python -c "from core.chart import ephemeris_status; print(ephemeris_status())"`.
+
+`test_agent.py` pins eight planet longitudes and the ascendant to 1e-6° as a **golden chart**, so any
+future change to the flag set, ayanamsa handling or ephemeris path fails the tests loudly instead of
+silently shifting every reading. See `CHANGELOG.md` for the measured numbers behind these choices.
 
 ---
 
@@ -111,6 +137,8 @@ jyotish:
   node: true                # true | mean Rahu/Ketu
   house_system: whole       # whole-sign (classical Parashari)
   dasha_year_days: 365.2425 # year length for dasha dates
+  position_mode: true       # true = JHora-parity true positions | apparent = SE default
+  ephe_path: data/ephe      # bundled Swiss Ephemeris .se1 files
 rag:
   enabled: true
   top_k: 5

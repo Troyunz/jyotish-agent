@@ -131,7 +131,15 @@ Installation takes a few minutes. `pyswisseph` will install as a ready-made whee
      ayanamsa: lahiri      # lahiri | raman | krishnamurti | yukteshwar | true_chitra
      node: true            # true | mean Rahu/Ketu
      house_system: whole   # whole-sign (classical Parashari)
+     position_mode: true   # true positions, matching Jagannatha Hora (see below)
+     ephe_path: data/ephe  # official Swiss Ephemeris files, shipped with the repo
    ```
+   **Precision matters here.** `position_mode: true` uses the true-position flags that agree with
+   desktop Jagannatha Hora to within 1 arcsecond; `apparent` is the plain Swiss Ephemeris default.
+   The two differ by up to 34″ (Mars) — visible in the arcminute column. The `data/ephe` folder
+   holds the official Astrodienst `.se1` files, so the engine uses the real ephemeris rather than
+   pyswisseph's silent Moshier fallback. Both choices are printed in every chart and shown in the
+   sidebar, and a golden-chart test pins the resulting longitudes.
 
 ---
 

@@ -11,6 +11,7 @@ Everything here is computed from the actual ephemeris (pyswisseph), never guesse
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import swisseph as swe
@@ -105,13 +106,94 @@ def _ord(n: int) -> str:
     return f"{n}{suffix}"
 
 
+# ------------------------------------------------------- ephemeris & positions
+
+_EPHE_PATH: str | None = None
+EPHE_FILES = ("sepl_18.se1", "semo_18.se1", "seas_18.se1")
+
+POSITION_MODES = {
+    "true": "true positions (TRUEPOS|NONUT|NOGDEFL - Jagannatha Hora parity)",
+    "apparent": "apparent positions (Swiss Ephemeris default)",
+}
+
+
+def position_flags(mode: str = "true") -> int:
+    """Swiss Ephemeris flags for the configured position convention.
+
+    "true" is the combination verified against desktop Jagannatha Hora (delta <= 1")
+    by the vedic-astro-skills project after they measured a 0-60" discrepancy between
+    the two baselines. "apparent" is the plain Swiss Ephemeris default that this
+    engine used before. The difference reaches ~34" (Mars) and is visible in the
+    arcminute column, so it is a documented setting rather than a silent choice.
+    """
+    flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
+    if str(mode).lower() in ("true", "jhora", "jhora_parity"):
+        flags |= swe.FLG_TRUEPOS | swe.FLG_NONUT | swe.FLG_NOGDEFL
+    return flags
+
+
+def ensure_ephe_path(path: str | Path | None) -> tuple[str, list[str]]:
+    """Point Swiss Ephemeris at the bundled .se1 data files (once per process).
+
+    Without .se1 files pyswisseph silently falls back to the built-in Moshier
+    ephemeris. That still works, but it is a different computation from what other
+    Jyotish software runs, so we load the official Astrodienst files and report
+    which one is actually in use.
+    """
+    global _EPHE_PATH
+    if path:
+        p = Path(path)
+        if p.is_dir():
+            files = sorted(f.name for f in p.glob("*.se1"))
+            if files and str(p) != _EPHE_PATH:
+                swe.set_ephe_path(str(p))
+                _EPHE_PATH = str(p)
+            return _EPHE_PATH or str(p), files
+    return _EPHE_PATH or "", []
+
+
+def ephemeris_in_use(jd: float, mode: str = "true") -> str:
+    """Which ephemeris actually served the last calculation - read from the returned flags."""
+    try:
+        _, retflag = swe.calc_ut(jd, swe.SUN, position_flags(mode))
+    except Exception:
+        return "unavailable"
+    if retflag < 0:
+        return "error"
+    if retflag & swe.FLG_JPLEPH:
+        return "JPL ephemeris"
+    if retflag & swe.FLG_SWIEPH:
+        return "Swiss Ephemeris (bundled .se1 files)"
+    if retflag & swe.FLG_MOSEPH:
+        return "Moshier built-in fallback (no .se1 files found)"
+    return "unknown"
+
+
+def ephemeris_status(jd: float | None = None, mode: str = "true") -> dict[str, Any]:
+    """Status block for the UI and the test suite."""
+    jd = jd if jd is not None else swe.julday(2000, 1, 1, 12.0)
+    path, files = ensure_ephe_path(_EPHE_PATH or None)
+    return {
+        "path": path or "(not set - using pyswisseph default search)",
+        "files": files,
+        "expected_files": list(EPHE_FILES),
+        "in_use": ephemeris_in_use(jd, mode),
+        "mode": mode,
+        "mode_label": POSITION_MODES.get(mode, mode),
+    }
+
+
 def _dms(lon: float) -> str:
-    x = lon % 30.0
-    d = int(x)
-    m = int((x - d) * 60)
-    s = int(round((((x - d) * 60) - m) * 60))
-    if s == 60:
-        m, s = m + 1, 0
+    """Degrees / minutes / seconds inside a sign.
+
+    Rounded once in arcseconds so it can never emit an illegal value like
+    12°60'00" or 30°00'00" at the end of a sign (a rounding bug class documented
+    in other Jyotish engines).
+    """
+    total = int(round((lon % 30.0) * 3600))
+    total = min(total, 30 * 3600 - 1)  # clamp 29°59'59.5"+ to 29°59'59", never 30°00'00"
+    d, rem = divmod(total, 3600)
+    m, s = divmod(rem, 60)
     return f"{d:02d}°{m:02d}'{s:02d}\""
 
 
@@ -242,9 +324,10 @@ def _ayanamsa_mode(name: str) -> int:
     return AYANAMSA.get(name.lower(), swe.SIDM_LAHIRI)
 
 
-def calc_positions(jd_ut: float, ayanamsa: str = "lahiri", node: str = "true") -> dict[str, dict[str, Any]]:
+def calc_positions(jd_ut: float, ayanamsa: str = "lahiri", node: str = "true",
+                   position_mode: str = "true") -> dict[str, dict[str, Any]]:
     swe.set_sid_mode(_ayanamsa_mode(ayanamsa), 0, 0)
-    flags = swe.FLG_SWIEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
+    flags = position_flags(position_mode)
     out: dict[str, dict[str, Any]] = {}
     for name in GRAHAS:
         if name == "Ketu":
@@ -483,10 +566,14 @@ def calc_chart(birth: dict[str, Any]) -> dict[str, Any]:
     ayan = birth.get("ayanamsa", "lahiri")
     node = birth.get("node", "true")
     hsys_name = birth.get("house_system", "whole")
+    pos_mode = str(birth.get("position_mode", "true")).lower()
+    if pos_mode not in POSITION_MODES:
+        pos_mode = "true"
+    ensure_ephe_path(birth.get("ephe_path"))
     lat, lon = float(birth["lat"]), float(birth["lon"])
 
     swe.set_sid_mode(_ayanamsa_mode(ayan), 0, 0)
-    planets = calc_positions(jd, ayan, node)
+    planets = calc_positions(jd, ayan, node, pos_mode)
 
     # Ascendant + cusps
     hsys = HOUSE_SYSTEM.get(hsys_name, b"W")
@@ -549,7 +636,9 @@ def calc_chart(birth: dict[str, Any]) -> dict[str, Any]:
             "julian_day_ut": round(jd, 6),
         },
         "settings": {"ayanamsa": ayan, "nodes": node, "house_system": "whole-sign (Parashari)"
-                     if hsys_name == "whole" else hsys_name},
+                     if hsys_name == "whole" else hsys_name,
+                     "positions": pos_mode, "positions_label": POSITION_MODES.get(pos_mode, pos_mode),
+                     "ephemeris": ephemeris_in_use(jd, pos_mode)},
         "ayanamsa_value": round(swe.get_ayanamsa_ut(jd), 6),
         "ascendant": {
             "lon": round(asc_lon, 6), "sign": asc_sign, "sign_name": sign_name(asc_sign),
@@ -576,7 +665,8 @@ def transit_summary(chart: dict[str, Any], when: datetime | None = None) -> str:
     when = when or datetime.now(timezone.utc)
     jd = swe.julday(when.year, when.month, when.day, when.hour + when.minute / 60)
     ayan = chart["settings"]["ayanamsa"]
-    planets = calc_positions(jd, ayan, chart["settings"]["nodes"])
+    planets = calc_positions(jd, ayan, chart["settings"]["nodes"],
+                             chart["settings"].get("positions", "true"))
     moon_sign = chart["planets"]["Moon"]["sign"]
     lines = []
     for g in ("Sun", "Jupiter", "Saturn", "Rahu", "Ketu"):
@@ -612,7 +702,9 @@ def render_chart_text(chart: dict[str, Any], when: datetime | None = None, inclu
     L.append(f"BIRTH DATA: {b['name']} | {b['local_datetime']} local ({b['tz']}, UTC{b['utc_offset']}) "
              f"= {b['utc_datetime']} UT | {b['place']} | lat {b['lat']:.4f} lon {b['lon']:.4f} | JD {b['julian_day_ut']}")
     L.append(f"SETTINGS: {chart['settings']['ayanamsa']} ayanamsa ({chart['ayanamsa_value']}°), "
-             f"{chart['settings']['nodes']} nodes, {chart['settings']['house_system']} houses")
+             f"{chart['settings']['nodes']} nodes, {chart['settings']['house_system']} houses, "
+             f"{chart['settings'].get('positions_label', chart['settings'].get('positions', 'true'))}")
+    L.append(f"EPHEMERIS: {chart['settings'].get('ephemeris', 'unknown')}")
 
     asc = chart["ascendant"]
     nak = asc["nakshatra"]

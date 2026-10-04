@@ -80,6 +80,7 @@ class BirthDetails:
             "local_dt": local_dt, "utc_dt": utc_dt, "lat": lat, "lon": lon, "tz": tz, "place": place,
             "ayanamsa": cfg.ayanamsa, "node": cfg.node_type,
             "house_system": cfg.house_system, "dasha_year_days": cfg.dasha_year_days,
+            "position_mode": cfg.position_mode, "ephe_path": cfg.ephe_path,
             "warnings": warnings,
         }
 

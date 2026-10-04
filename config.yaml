@@ -42,6 +42,20 @@ jyotish:
   include_transits: true    # compute current Jupiter/Saturn/Rahu gochara + Sade Sati
   include_ashtakavarga: true # bindu strength per sign/bhava - grades transits by ground quality
 
+  # ---- position convention (affects the arcminute column of every chart) ----
+  # true     : SEFLG_TRUEPOS|NONUT|NOGDEFL - the combination verified against desktop
+  #            Jagannatha Hora (delta <= 1") by the vedic-astro-skills project.
+  # apparent : plain Swiss Ephemeris apparent positions (what this engine used before).
+  # The two differ by up to ~34" (Mars), ~27" (Saturn), ~21" (Sun). "true" is the
+  # default because parity with the software Indian astrologers use is the goal;
+  # set "apparent" if you are comparing against an app that uses apparent positions.
+  position_mode: true
+
+  # Bundled Swiss Ephemeris data files (official Astrodienst .se1 files, ~2 MB).
+  # Without these, pyswisseph silently falls back to the built-in Moshier ephemeris,
+  # which differs by up to ~0.45". The agent reports which one is actually in use.
+  ephe_path: data/ephe
+
 # ---------- Knowledge base (RAG) ----------
 rag:
   enabled: true

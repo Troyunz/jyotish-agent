@@ -77,6 +77,64 @@ def main() -> int:
     check("panchanga has tithi", "tithi" in chart["panchanga"] and "Shukla" in chart["panchanga"]["tithi"])
     check("ascendant nakshatra = Uttara Bhadrapada", chart["ascendant"]["nakshatra"]["name"] == "Uttara Bhadrapada")
 
+    print("\nposition convention & ephemeris (precision):")
+    from core.chart import EPHE_FILES, ephemeris_status, position_flags, _dms
+
+    check("default position mode is 'true' (JHora parity)", cfg.position_mode == "true", cfg.position_mode)
+    check("config reports ephe_path", cfg.ephe_path.name == "ephe", str(cfg.ephe_path))
+
+    st = ephemeris_status()
+    check("bundled .se1 ephemeris files present",
+          all(f in st["files"] for f in EPHE_FILES), str(st["files"]))
+    check("Swiss Ephemeris files are actually in use (not Moshier fallback)",
+          "Swiss Ephemeris" in st["in_use"], st["in_use"])
+    check("chart records the ephemeris it used",
+          "Swiss Ephemeris" in chart["settings"]["ephemeris"], chart["settings"]["ephemeris"])
+    check("chart records the position convention",
+          chart["settings"]["positions"] == "true" and "Jagannatha Hora parity" in chart["settings"]["positions_label"])
+
+    # flags: 'true' adds TRUEPOS|NONUT|NOGDEFL, 'apparent' does not
+    ft, fa = position_flags("true"), position_flags("apparent")
+    check("true mode sets TRUEPOS|NONUT|NOGDEFL",
+          all(ft & f for f in (swe.FLG_TRUEPOS, swe.FLG_NONUT, swe.FLG_NOGDEFL)))
+    check("apparent mode leaves them off",
+          not any(fa & f for f in (swe.FLG_TRUEPOS, swe.FLG_NONUT, swe.FLG_NOGDEFL)))
+    check("both modes use SWIEPH + sidereal + speed",
+          all(m & swe.FLG_SWIEPH and m & swe.FLG_SIDEREAL and m & swe.FLG_SPEED for m in (ft, fa)))
+
+    # measured impact: apparent vs true must match the documented magnitudes
+    jd_g = swe.julday(1990, 1, 1, 6.5)
+    swe.set_sid_mode(swe.SIDM_LAHIRI, 0, 0)
+    deltas = {}
+    for name, pid in (("Sun", swe.SUN), ("Moon", swe.MOON), ("Mars", swe.MARS), ("Saturn", swe.SATURN)):
+        a_lon = swe.calc_ut(jd_g, pid, fa)[0][0]
+        t_lon = swe.calc_ut(jd_g, pid, ft)[0][0]
+        deltas[name] = abs(t_lon - a_lon) * 3600
+    check("Mars differs by ~34\" between modes (documented)", 25 < deltas["Mars"] < 45, f"{deltas['Mars']:.1f}\"")
+    check("Sun differs by ~21\" between modes", 10 < deltas["Sun"] < 30, f"{deltas['Sun']:.1f}\"")
+    check("Moon differs by <2\" (true positions barely affect it)", deltas["Moon"] < 2, f"{deltas['Moon']:.1f}\"")
+
+    # golden chart: pinned longitudes catch any silent engine change in future
+    GOLDEN = {"Sun": 256.865713, "Moon": 306.465455, "Mars": 226.127500, "Mercury": 272.013316,
+              "Jupiter": 71.455677, "Venus": 282.529793, "Saturn": 261.917182, "Rahu": 294.726414}
+    for g, expected in GOLDEN.items():
+        got = chart["planets"][g]["lon"]
+        check(f"golden longitude {g} = {expected}", abs(got - expected) < 1e-6, f"got {got:.6f}")
+    check("golden ascendant = 343.922640", abs(chart["ascendant"]["lon"] - 343.922640) < 1e-6,
+          f"{chart['ascendant']['lon']:.6f}")
+
+    # dms formatting can never emit an illegal value
+    check("dms clamps at sign end (29.99999 never becomes 30° or 60')",
+          _dms(29.99999) == "29°59'59\"", _dms(29.99999))
+    check("dms rounds up legally inside a sign (12.999999 -> 13°)",
+          _dms(12.999999) == "13°00'00\"", _dms(12.999999))
+    check("dms normal case", _dms(15.5) == "15°30'00\"", _dms(15.5))
+    check("dms zero", _dms(0.0) == "00°00'00\"", _dms(0.0))
+    bad = [x / 1000 for x in range(0, 300000, 7) if (
+        "°60'" in _dms(x / 1000) or "'60\"" in _dms(x / 1000) or _dms(x / 1000).startswith("30°"))]
+    check("invariant sweep: 42,857 longitudes produce no illegal dms strings", not bad,
+          f"offenders: {bad[:5]}")
+
     print("\nvimshottari dasha:")
     md = chart["dashas"][0]
     check("first mahadasha lord is Mars (Dhanishta lord)", md["lord"] == "Mars", md["lord"])

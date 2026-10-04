@@ -137,6 +137,17 @@ class Config:
     def dasha_year_days(self) -> float:
         return float(self.get("jyotish.dasha_year_days", 365.2425))
 
+    @property
+    def position_mode(self) -> str:
+        """'true' (JHora-parity true positions) or 'apparent' (Swiss Ephemeris default)."""
+        m = str(self.get("jyotish.position_mode", "true")).lower()
+        return m if m in ("true", "apparent") else "true"
+
+    @property
+    def ephe_path(self) -> Path:
+        """Directory holding the bundled Swiss Ephemeris .se1 data files."""
+        return self.path_of("jyotish.ephe_path", "data/ephe")
+
     # -------------------------------------------------------------------- RAG
     @property
     def rag_enabled(self) -> bool:

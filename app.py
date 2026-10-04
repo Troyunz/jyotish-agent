@@ -129,6 +129,8 @@ with st.sidebar:
 
     st.divider()
     st.caption(f"Settings: {cfg.ayanamsa} ayanamsa | {cfg.node_type} nodes | {cfg.house_system} houses")
+    st.caption(f"Positions: {cfg.position_mode} | Ephemeris: "
+               f"{'bundled .se1 files' if (cfg.ephe_path / 'sepl_18.se1').exists() else 'Moshier fallback'}")
     st.caption(f"Knowledge base: {agent.kb.status() if agent.kb else 'disabled'}")
 
 
@@ -260,6 +262,8 @@ with tab_chart:
         st.subheader(f"Chart of {b['name']}")
         st.caption(f"{b['local_datetime']} local ({b['tz']}, UTC{b['utc_offset']}) = {b['utc_datetime']} UT | "
                    f"{b['place']} | JD {b['julian_day_ut']} | ayanamsa {c['ayanamsa_value']}°")
+        st.caption(f"📐 {c['settings'].get('positions_label', c['settings'].get('positions'))} · "
+                   f"🧮 {c['settings'].get('ephemeris', 'unknown')}")
 
         asc = c["ascendant"]
         st.markdown(f"**Lagna:** {asc['sign_name']} {asc['deg_str']} - nakshatra "
