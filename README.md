@@ -15,6 +15,9 @@ Built and tested for: Windows 11 · Ryzen 5 4600H · 16 GB RAM · GTX 1650 4 GB 
 | **Yoga detection** | 25+ classical configurations incl. Pancha Mahapurusha, Gajakesari, Budha-Aditya, Chandra-Mangala, Sunapha/Anapha/Durudhura/Kemadruma, Adhi, Amala, Vipareeta (Harsha/Sarala/Vimala), Raja & Dhana yogas, Parivartana, Shakata, Vargottama, Neecha-bhanga, **Mangal dosha with its classical cancellations**, Kaal Sarpa (flagged as non-classical) |
 | **Vimshottari dasha** | Mahadasha → Antardasha → Pratyantardasha with exact dates, current period, upcoming changes, balance-at-birth |
 | **Gochara (transits)** | Current Jupiter/Saturn/Rahu positions counted from the natal Moon, **Sade Sati** phase detection, Ashtama/Ardha-Ashtama Shani |
+| **Ashtakavarga** | BAV + **SAV bindu strength** per sign and bhava (validated against the classical 337 total) — grades every transit by the ground it lands on |
+| **Answer self-check** | Every chart claim in an answer is verified against the computed data; contradictions are shown with a one-click corrective regeneration |
+| **Topic-routed analysis** | Questions are classified (marriage / career / wealth / children / health / education / transit / spirituality) and each gets the tradition's own checklist for that subject |
 | **Panchanga** | Tithi, nitya yoga, karana, vara, Moon phase, sunrise/sunset for the birth location |
 | **Classical RAG** | Hybrid BM25 + embedding search over classical texts and notes in `data/knowledge/`, cited in the answers (BPHS, Phaladeepika, Saravali, Brihat Jataka, Jataka Parijata, Uttara Kalamrita study notes included) |
 | **Three brains** | Ollama (local, offline, GPU) · Gemini free tier · OpenAI/Claude — with automatic fallback |
@@ -148,11 +151,19 @@ The honest summary: for a topic where **accuracy of numbers matters**, you want 
 - The bundled knowledge notes are **original study summaries** of classical principles, not translations of copyrighted works. Nothing is quoted verbatim, so there are no fabricated verse numbers.
 - Small local models (3B–7B) write plainer prose and reason less deeply than cloud models. For a full life reading, the Gemini fallback is worth having.
 - This is guidance software, not a substitute for a doctor, lawyer, financial adviser, or your own judgement. It is built to say so.
-- **Licensing:** Swiss Ephemeris (`pyswisseph`) is AGPL-3.0 / commercial dual-licensed by Astrodienst. Personal local use is fine; public distribution or hosting requires compliance with AGPL or a commercial licence.
+- **Licensing:** this project is released under **AGPL-3.0** (see `LICENSE`), because it links the Swiss Ephemeris through `pyswisseph`, which Astrodienst dual-licenses as **AGPL-3.0 / commercial**. Personal use is unrestricted; publishing, hosting or distributing the code keeps the AGPL terms (share the source, keep the licence). If you ever want to relicense it under different terms, you would need a commercial Swiss Ephemeris licence from Astrodienst.
+
+---
+
+## Licence
+
+**GNU Affero General Public License v3.0** — see [`LICENSE`](LICENSE).
+
+Why AGPL: the astrology calculations use the Swiss Ephemeris (`pyswisseph`), which is dual-licensed by Astrodienst as AGPL-3.0 or commercial. Running this on your own machine is free and unrestricted under either interpretation. If you publish, host it as a service, or ship it to others, the AGPL requires you to make the corresponding source available under the same licence — which is exactly what a public repository does.
+
 
 ---
 
 ## Credits
 
 Swiss Ephemeris by Astrodienst (via `pyswisseph`) · Classical system: Parashara's BPHS tradition, with references to Phaladeepika, Saravali, Brihat Jataka, Jataka Parijata and Uttara Kalamrita · Built for local-first operation with Ollama.
-"# jyotish-agent" 

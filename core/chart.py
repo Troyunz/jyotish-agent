@@ -15,6 +15,7 @@ from typing import Any
 
 import swisseph as swe
 
+from . import ashtakavarga as av_mod
 from . import dasha as dasha_mod
 
 # --------------------------------------------------------------------- constants
@@ -95,6 +96,14 @@ VARA = ["Monday (Somavara)", "Tuesday (Mangalavara)", "Wednesday (Budhavara)", "
 
 
 # ------------------------------------------------------------------ helpers
+
+def _ord(n: int) -> str:
+    if 10 <= n % 100 <= 20:
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
 
 def _dms(lon: float) -> str:
     x = lon % 30.0
@@ -553,6 +562,7 @@ def calc_chart(birth: dict[str, Any]) -> dict[str, Any]:
         "panchanga": {**panch, "sunrise_utc": rise, "sunset_utc": sett},
         "yogas": detect_yogas(planets, asc_sign),
         "dashas": dashas,
+        "ashtakavarga": av_mod.compute({"planets": planets, "ascendant": {"sign": asc_sign}}),
         "dasha_current": dasha_mod.current_periods(dashas),
         "dasha_upcoming": dasha_mod.upcoming_changes(dashas, n=4),
     }
@@ -572,8 +582,13 @@ def transit_summary(chart: dict[str, Any], when: datetime | None = None) -> str:
     for g in ("Sun", "Jupiter", "Saturn", "Rahu", "Ketu"):
         t = planets[g]
         from_moon = (t["sign"] - moon_sign) % 12 + 1
-        lines.append(f"  {g}: transiting {t['sign_name']} ({t['deg_str']}) = {from_moon}th from natal Moon"
-                     + (" [retrograde]" if t["retrograde"] else ""))
+        bindu = av_mod.bindu_of(chart, g, t["sign"])
+        strength = ""
+        if bindu:
+            strength = (f" [bindus: own {bindu['bav']}/8, SAV {bindu['sav']}/56"
+                        f" = {av_mod.grade(bindu['sav'])}]")
+        lines.append(f"  {g}: transiting {t['sign_name']} ({t['deg_str']}) = {_ord(from_moon)} from natal Moon"
+                     + (" [retrograde]" if t["retrograde"] else "") + strength)
     # Sade Sati
     sat = planets["Saturn"]
     rel = (sat["sign"] - moon_sign) % 12 + 1
@@ -589,7 +604,8 @@ def transit_summary(chart: dict[str, Any], when: datetime | None = None) -> str:
 
 # ------------------------------------------------------------------ rendering
 
-def render_chart_text(chart: dict[str, Any], when: datetime | None = None, include_vargas: bool = True) -> str:
+def render_chart_text(chart: dict[str, Any], when: datetime | None = None, include_vargas: bool = True,
+                      include_ashtakavarga: bool = True) -> str:
     """Compact but complete text block handed to the LLM as ground truth."""
     b = chart["birth"]
     L: list[str] = []
@@ -637,6 +653,9 @@ def render_chart_text(chart: dict[str, Any], when: datetime | None = None, inclu
 
     L.append("\nYOGAS / NOTABLE CONFIGURATIONS:")
     L.extend("  - " + y for y in chart["yogas"])
+
+    if include_ashtakavarga and chart.get("ashtakavarga"):
+        L.append("\n" + av_mod.render(chart))
 
     dc = chart["dasha_current"]
     L.append(f"\nVIMSHOTTARI DASHA (as of {dc['as_of']}):")

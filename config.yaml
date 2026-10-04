@@ -29,6 +29,8 @@ api:
 generation:
   temperature: 0.4          # 0.3-0.5 keeps astrology answers grounded
   max_tokens: 1600
+  self_check: true          # after each answer, check its claims against the calculated chart
+                            # and offer a one-click correction if the model drifted
 
 # ---------- Jyotish / astrology settings ----------
 jyotish:
@@ -38,6 +40,7 @@ jyotish:
   dasha_year_days: 365.2425 # year length used for Vimshottari dates
   include_vargas: true      # compute divisional charts (D2..D60)
   include_transits: true    # compute current Jupiter/Saturn/Rahu gochara + Sade Sati
+  include_ashtakavarga: true # bindu strength per sign/bhava - grades transits by ground quality
 
 # ---------- Knowledge base (RAG) ----------
 rag:

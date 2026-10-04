@@ -13,8 +13,9 @@ from . import chart as chart_mod
 from . import geo
 from .config import Config
 from .llm import Brain, LLMError
-from .prompts import build_system_prompt
+from .prompts import build_system_prompt, detect_topic
 from .rag import KnowledgeBase
+from .verify import correction_prompt, verify_answer
 
 HISTORY_LIMIT = 16  # messages kept (8 exchanges)
 
@@ -92,6 +93,8 @@ class JyotishAgent:
         self.birth: dict[str, Any] | None = None
         self.history: list[dict[str, str]] = []
         self.last_sources: list[dict[str, Any]] = []
+        self.last_checks: list[dict[str, str]] = []
+        self.last_topic: str = ""
         self.warnings: list[str] = []
 
     # ------------------------------------------------------------------ setup
@@ -114,30 +117,37 @@ class JyotishAgent:
         return chart_mod.render_chart_text(
             self.chart, when=when or datetime.now(timezone.utc),
             include_vargas=bool(self.cfg.get("jyotish.include_vargas", True)),
+            include_ashtakavarga=bool(self.cfg.get("jyotish.include_ashtakavarga", True)),
         )
 
     # ------------------------------------------------------------------ prompting
-    def _retrieve(self, query: str) -> str:
+    def _retrieve(self, query: str, topic_keywords: list[str] | None = None) -> str:
         self.last_sources = []
         if not self.kb or not self.kb.chunks:
             return ""
-        # blend the question with the chart's core facts so classical references stay relevant
+        # blend the question with the chart's core facts and the topic's own vocabulary
         extra = ""
         if self.chart:
-            extra = f" lagna {self.chart['ascendant']['sign_name']} moon sign {self.chart['planets']['Moon']['sign_name']}"
+            extra = (f" lagna {self.chart['ascendant']['sign_name']} "
+                     f"moon sign {self.chart['planets']['Moon']['sign_name']}")
+        if topic_keywords:
+            extra += " " + " ".join(topic_keywords[:6])
         results = self.kb.search(query + extra, k=self.cfg.rag_top_k)
         self.last_sources = results
         return self.kb.context_block(results) if results else ""
 
     def build_messages(self, query: str) -> list[dict[str, str]]:
         now = datetime.now(timezone.utc)
+        topic, checklist, topic_kw = detect_topic(query)
+        self.last_topic = topic
         chart_ctx = self.chart_text(when=now) if self.chart else None
-        refs = self._retrieve(query)
+        refs = self._retrieve(query, topic_kw)
         system = build_system_prompt(
             chart_context=chart_ctx,
             reference_context=refs,
             today=now.strftime("%A, %d %B %Y (%H:%M UTC)"),
             rag_enabled=bool(self.cfg.rag_enabled),
+            topic_checklist=checklist if self.chart else None,
         )
         msgs: list[dict[str, str]] = [{"role": "system", "content": system}]
         msgs.extend(self.history[-HISTORY_LIMIT:])
@@ -159,14 +169,55 @@ class JyotishAgent:
         answer = "".join(collected)
         self.history.append({"role": "user", "content": query})
         self.history.append({"role": "assistant", "content": answer})
+
+        # ---- self-check against the calculated chart ----
+        self.last_checks = []
+        if self.chart and bool(self.cfg.get("generation.self_check", True)):
+            self.last_checks = verify_answer(answer, self.chart)
+
         yield {
             "type": "done",
             "text": answer,
             "backend": self.brain.last_used or self.cfg.backend,
+            "topic": self.last_topic,
+            "checks": self.last_checks,
             "sources": [
                 {"title": s["title"], "heading": s.get("heading", ""), "score": s["score"]}
                 for s in self.last_sources
             ],
+        }
+
+    def corrective_pass(self, query: str, answer: str,
+                        issues: list[dict[str, str]] | None = None) -> Iterator[dict[str, Any]]:
+        """Regenerate an answer with the contradicting claims explicitly corrected."""
+        issues = issues if issues is not None else self.last_checks
+        if not issues:
+            yield {"type": "done", "text": answer, "backend": self.brain.last_used or self.cfg.backend,
+                   "checks": [], "sources": [], "corrected": False}
+            return
+        messages = self.build_messages(query)
+        # drop the system prompt rebuild's history tail duplication: keep system + this exchange
+        messages = [messages[0], {"role": "user", "content": query},
+                    {"role": "assistant", "content": answer},
+                    {"role": "user", "content": correction_prompt(issues)}]
+        collected: list[str] = []
+        try:
+            for piece in self.brain.stream(messages, temperature=0.2):
+                collected.append(piece)
+                yield {"type": "token", "text": piece}
+        except LLMError as exc:
+            yield {"type": "error", "message": str(exc)}
+            return
+        fixed = "".join(collected)
+        if self.history and self.history[-1]["role"] == "assistant":
+            self.history[-1]["content"] = fixed
+        remaining = verify_answer(fixed, self.chart) if self.chart else []
+        self.last_checks = remaining
+        yield {
+            "type": "done", "text": fixed, "corrected": True, "checks": remaining,
+            "backend": self.brain.last_used or self.cfg.backend,
+            "sources": [{"title": s["title"], "heading": s.get("heading", ""), "score": s["score"]}
+                        for s in self.last_sources],
         }
 
     def ask(self, query: str) -> dict[str, Any]:

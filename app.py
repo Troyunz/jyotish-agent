@@ -152,7 +152,7 @@ with tab_chat:
         m4.metric("Dasha now", cur.get("maha", {}).get("lord", "-"),
                   cur.get("antar", {}).get("lord", "") and f"AD {cur['antar']['lord']}")
 
-    for msg in st.session_state.messages:
+    for mi, msg in enumerate(st.session_state.messages):
         with st.chat_message(msg["role"], avatar="🕉️" if msg["role"] == "assistant" else "🙏"):
             st.markdown(msg["content"])
             if msg["role"] == "assistant" and msg.get("meta"):
@@ -162,8 +162,26 @@ with tab_chat:
                         for s in meta["sources"]:
                             st.markdown(f"- **{s['title']}** {('- ' + s['heading']) if s.get('heading') else ''} "
                                         f"<span style='color:#888'>(score {s['score']})</span>", unsafe_allow_html=True)
-                if meta.get("backend"):
-                    st.caption(f"answered by: {meta['backend']}")
+                checks = meta.get("checks") or []
+                if checks:
+                    st.warning("🔍 **Chart-data check** — this answer may contradict the computed chart:\n"
+                               + "\n".join(f"- model said *{c['claim']}*; computed data: {c['data']}" for c in checks))
+                    if mi == len(st.session_state.messages) - 1 and not meta.get("corrected"):
+                        if st.button("🔁 Regenerate, corrected against the chart data", key=f"fix_{mi}"):
+                            st.session_state["pending_fix"] = {
+                                "query": st.session_state.messages[mi - 1]["content"],
+                                "answer": msg["content"], "issues": checks,
+                            }
+                            st.rerun()
+                elif meta.get("corrected"):
+                    st.success("✅ Corrected and re-checked against the chart data.")
+                elif meta.get("topic"):
+                    st.caption("✓ every chart claim in this answer was checked against the computed data")
+                bits = [f"answered by: {meta.get('backend')}"] if meta.get("backend") else []
+                if meta.get("topic"):
+                    bits.append(f"topic: {meta['topic']}")
+                if bits:
+                    st.caption(" · ".join(bits))
 
     prompts = [
         "Give me a full reading of my chart - start with Lagna, Moon and the strongest yogas.",
@@ -178,6 +196,27 @@ with tab_chat:
             if cols[i % 2].button(q, use_container_width=True, key=f"p{i}"):
                 st.session_state["queued"] = q
                 st.rerun()
+
+    # ---- corrective regeneration requested from the chart-data check ----
+    pending = st.session_state.pop("pending_fix", None)
+    if pending and agent.has_chart():
+        with st.chat_message("assistant", avatar="🕉️"):
+            st.caption("🔁 Regenerating with the chart-data corrections applied…")
+            ph = st.empty()
+            fixed, meta2 = "", {}
+            for ev in agent.corrective_pass(pending["query"], pending["answer"], pending["issues"]):
+                if ev["type"] == "token":
+                    fixed += ev["text"]
+                    ph.markdown(fixed + " ▌")
+                elif ev["type"] == "done":
+                    meta2 = {"backend": ev.get("backend"), "sources": ev.get("sources", []),
+                             "checks": ev.get("checks", []), "corrected": ev.get("corrected", True),
+                             "topic": agent.last_topic}
+                elif ev["type"] == "error":
+                    fixed = f"⚠️ {ev['message']}"
+            ph.markdown(fixed)
+        st.session_state.messages.append({"role": "assistant", "content": fixed, "meta": meta2})
+        st.rerun()
 
     question = st.chat_input("Ask Jyotishi anything about your chart, dashas, or Jyotisha in general...")
     if not question:
@@ -197,7 +236,8 @@ with tab_chat:
                         text += ev["text"]
                         placeholder.markdown(text + " ▌")
                     elif ev["type"] == "done":
-                        meta = {"backend": ev.get("backend"), "sources": ev.get("sources", [])}
+                        meta = {"backend": ev.get("backend"), "sources": ev.get("sources", []),
+                                "checks": ev.get("checks", []), "topic": ev.get("topic")}
                     elif ev["type"] == "error":
                         text = f"⚠️ {ev['message']}\n\nCheck the sidebar status, or switch the provider " \
                                f"(local needs Ollama running; cloud needs a key in `.env`)."
@@ -265,6 +305,22 @@ with tab_chart:
             for g in ("Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"):
                 vrows.append({"Body": g, **c["planets"][g]["vargas"]})
             st.dataframe(pd.DataFrame(vrows), use_container_width=True, hide_index=True)
+
+        with st.expander("Ashtakavarga — bindu strength by bhava (grades transits)"):
+            from core import ashtakavarga as av
+
+            sav_rows = []
+            for h in range(1, 13):
+                b = c["ashtakavarga"]["by_house"][h]
+                sav_rows.append({"House": h, "Sign": c["houses"][h]["sign"], "SAV bindus": b,
+                                 "Grade": av.grade(b),
+                                 "Jupiter BAV": c["ashtakavarga"]["bav"]["Jupiter"][
+                                     ((c["ascendant"]["sign"] - 1 + h - 1) % 12) + 1],
+                                 "Saturn BAV": c["ashtakavarga"]["bav"]["Saturn"][
+                                     ((c["ascendant"]["sign"] - 1 + h - 1) % 12) + 1]})
+            st.dataframe(pd.DataFrame(sav_rows), use_container_width=True, hide_index=True)
+            st.caption("28+ = strong support · 25–27 good · 22–24 average · below 22 = friction. "
+                       "A planet transiting a sign with high bindus in its own BAV gives clean results.")
 
         with st.expander("Full chart text (what the model receives as ground truth)"):
             st.code(agent.chart_text(), language="text")

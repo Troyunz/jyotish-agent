@@ -125,6 +125,72 @@ def main() -> int:
     blob2 = " ".join(h["text"].lower() for h in hits2)
     check("mangal dosha cancellations retrievable", "cancel" in blob2 or "exception" in blob2)
 
+    print("\nashtakavarga (validated against classical totals):")
+    from core import ashtakavarga as av
+
+    avd = chart["ashtakavarga"]
+    check("BAV totals are 48/49/39/54/56/52/39",
+          all(avd["totals"][p] == v for p, v in av.EXPECTED_TOTALS.items()),
+          str(avd["totals"]))
+    check("SAV total is 337", avd["sav_total"] == 337, str(avd["sav_total"]))
+    check("every sign has 0-8 bindus per planet",
+          all(0 <= v <= 8 for g in avd["bav"].values() for v in g.values()))
+    check("SAV by house sums to 337", sum(avd["by_house"].values()) == 337)
+    check("bindus_by_sign matches (house 1 = lagna sign)",
+          avd["by_house"][1] == avd["sav"][chart["ascendant"]["sign"]])
+    probe = av.bindu_of(chart, "Saturn", chart["planets"]["Moon"]["sign"])
+    check("transit bindu lookup works", probe is not None and 0 <= probe["bav"] <= 8, str(probe))
+    check("grade() buckets correctly", av.grade(29) == "strong support" and av.grade(23) == "average"
+          and av.grade(18) == "weak / friction")
+
+    print("\nanswer verification (self-check):")
+    from core.verify import correction_prompt, verify_answer
+
+    # correct statements must pass clean
+    good = ("Your Lagna is Pisces. Jupiter sits in the 4th house. Saturn is in the 10th house. "
+            "The 7th house lord Mercury is in the 11th house.")
+    check("correct claims produce no issues", verify_answer(good, chart) == [], str(verify_answer(good, chart)))
+
+    # wrong house, wrong sign, wrong lord must be caught
+    bad = ("Jupiter is in the 5th house. In your chart Mercury is in Aries. "
+           "The 7th house lord is Jupiter. Saturn is retrograde.")
+    issues = verify_answer(bad, chart)
+    kinds = {i["kind"] for i in issues}
+    check("wrong planet-house caught", "planet-house" in kinds, str(kinds))
+    check("wrong planet-sign caught", "planet-sign" in kinds, str(kinds))
+    check("wrong house-lord caught", "house-lord" in kinds, str(kinds))
+    check("wrong retrograde flag caught", "flag-retrograde" in kinds, str(kinds))
+    check("issue carries the computed data", all(i.get("data") for i in issues))
+
+    # must NOT flag transits, theory or hypotheticals (false-positive guard)
+    harmless = ("Saturn transiting the 4th house brings pressure. Jupiter is transiting your 10th house. "
+                "If Jupiter were in the 5th house it would aspect the 9th. "
+                "The 7th house represents marriage and partnership.")
+    fp = verify_answer(harmless, chart)
+    check("transit/theory sentences are not flagged", fp == [], str(fp))
+
+    # dasha year check
+    dasha_bad = "Your Saturn mahadasha runs through 2019 according to the chart."
+    check("impossible dasha year caught", any(i["kind"] == "dasha-year" for i in verify_answer(dasha_bad, chart)))
+    dasha_ok = "Your Saturn mahadasha runs from 2024 onward."
+    check("valid dasha year accepted", not any(i["kind"] == "dasha-year" for i in verify_answer(dasha_ok, chart)))
+    check("correction prompt built", "CONTRADICT" in correction_prompt(issues))
+
+    print("\ntopic routing:")
+    from core.prompts import detect_topic
+
+    cases = [("When will I get married?", "marriage"), ("Which career suits me?", "career"),
+             ("How is my financial situation and property?", "wealth"),
+             ("What about children?", "children"), ("Will my health be ok?", "health"),
+             ("best course for my education and exams", "education"),
+             ("What is happening in my transits this year?", "transit"),
+             ("tell me about my sadhana and guru", "spirituality"),
+             ("Give me a full reading", "general")]
+    for q, expected in cases:
+        got = detect_topic(q)[0]
+        check(f"'{q[:34]}...' -> {expected}", got == expected, f"got {got}")
+    check("checklists are non-empty", all(len(detect_topic(q)[1]) > 100 for q, _ in cases))
+
     print("\nagent wiring (no LLM call):")
     from core.agent import JyotishAgent
 
@@ -136,6 +202,12 @@ def main() -> int:
     msgs = agent.build_messages("Will I travel abroad?")
     check("system prompt includes chart ground truth", "CALCULATED CHART DATA" in msgs[0]["content"])
     check("retrieval injected classical refs", "CLASSICAL REFERENCES" in msgs[0]["content"])
+    check("topic checklist injected", "ANALYSIS CHECKLIST FOR THIS QUESTION" in msgs[0]["content"])
+    check("ashtakavarga present in chart text", "ASHTAKAVARGA" in txt and "bindus" in txt)
+    check("transits graded with bindus", "bindus: own" in txt)
+    msgs2 = agent.build_messages("When will I marry?")
+    check("marriage topic detected in agent", agent.last_topic == "marriage", agent.last_topic)
+    check("marriage checklist text injected", "D9 (Navamsa)" in msgs2[0]["content"])
     check("user message last", msgs[-1]["role"] == "user")
 
     print(f"\n{'-' * 46}\n{PASS} passed, {FAIL} failed\n{'-' * 46}")
