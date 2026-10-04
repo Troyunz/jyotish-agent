@@ -6,6 +6,35 @@ differ, so re-check any reading you keep.
 
 ---
 
+## 2026-10-04 — knowledge base: Ashtakavarga notes + stale-index detection
+
+**No numerical change to charts.** Affects retrieval quality.
+
+### New knowledge file: `data/knowledge/ashtakavarga.md`
+The engine computes BAV/SAV and grades every transit with it, but the corpus only mentioned
+Ashtakavarga in passing (5 mentions across 3 files). The model was being handed "SAV 30/56 = strong
+support" with almost no grounding to explain what that means. The new file adds: how the points are
+generated, the classical totals (48/49/39/54/56/52/39 = 337) as a correctness check, the grading
+bands (matching `core/ashtakavarga.py` exactly), how to read a planet's own BAV *against* the SAV,
+the dasha → transit → Ashtakavarga order of judgement, kakshya subdivisions, sodhya pinda, use in
+vargas, and the honest limits. Index grows 102 → 118 chunks, 6 → 7 files.
+
+### Stale-index detection
+Previously, editing a book or adding a new one left the agent silently serving the old content — the
+user would reasonably conclude the agent ignored their text. Now:
+- `build()` records a sha1 + size per knowledge file in the index metadata.
+- `KnowledgeBase.staleness()` reports added / edited / removed files.
+- `status()` appends `⚠ STALE (...) - rebuild: python build_index.py`.
+- `python build_index.py --check` lists exactly what changed and what to do.
+- The Streamlit Knowledge base tab shows a warning naming the changed files.
+- Indexes built by older versions (no signatures) are handled via filename comparison.
+
+### Tests: 111 → 120 checks
+Staleness behaviour is tested against a temporary knowledge folder: empty index is stale, a fresh
+build is not, editing/adding/removing a file is each detected, and rebuilding clears the flag.
+
+---
+
 ## 2026-10-04 — precision: true positions, bundled ephemeris, golden chart
 
 **⚙️ Numerical change.** Charts computed before this date used apparent planetary positions on the

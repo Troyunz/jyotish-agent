@@ -21,7 +21,8 @@ Built and tested for: Windows 11 · Ryzen 5 4600H · 16 GB RAM · GTX 1650 4 GB 
 | **Bundled ephemeris** | Official Astrodienst `.se1` data files ship with the repo — no silent Moshier fallback, and the engine reports which ephemeris actually served the calculation |
 | **Topic-routed analysis** | Questions are classified (marriage / career / wealth / children / health / education / transit / spirituality) and each gets the tradition's own checklist for that subject |
 | **Panchanga** | Tithi, nitya yoga, karana, vara, Moon phase, sunrise/sunset for the birth location |
-| **Classical RAG** | Hybrid BM25 + embedding search over classical texts and notes in `data/knowledge/`, cited in the answers (BPHS, Phaladeepika, Saravali, Brihat Jataka, Jataka Parijata, Uttara Kalamrita study notes included) |
+| **Classical RAG** | Hybrid BM25 + embedding search over classical texts and notes in `data/knowledge/`, cited in the answers (BPHS, Phaladeepika, Saravali, Brihat Jataka, Jataka Parijata, Uttara Kalamrita and Ashtakavarga study notes included) |
+| **Stale-index detection** | sha1 per knowledge file; the CLI and UI warn (naming the files) when notes were edited or added without rebuilding, so the agent never silently serves outdated texts |
 | **Three brains** | Ollama (local, offline, GPU) · Gemini free tier · OpenAI/Claude — with automatic fallback |
 | **Ethical guardrails** | Refuses death/lifespan predictions, no medical/legal/financial instructions, states dosha cancellations before difficulties, never claims scientific proof |
 | **Offline geo lookup** | 290+ cities with fuzzy matching + offline timezone resolution + manual lat/lon/timezone override |

@@ -8,6 +8,7 @@ Everything stays on your machine; no index is uploaded anywhere.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import re
@@ -22,6 +23,23 @@ from .config import Config
 WORD_RE = re.compile(r"[\w'’-]+", re.UNICODE)
 CHUNK_CHARS = 1100
 CHUNK_OVERLAP = 150
+INDEXABLE = (".md", ".txt", ".pdf")
+
+
+def _knowledge_files(kdir: Path) -> list[Path]:
+    return sorted(p for p in kdir.rglob("*") if p.suffix.lower() in INDEXABLE)
+
+
+def _file_signatures(kdir: Path) -> dict[str, dict[str, Any]]:
+    """sha1 + size per knowledge file, used to detect a stale index."""
+    sig: dict[str, dict[str, Any]] = {}
+    for p in _knowledge_files(kdir):
+        try:
+            data = p.read_bytes()
+        except OSError:
+            continue
+        sig[p.name] = {"sha1": hashlib.sha1(data).hexdigest(), "size": len(data)}
+    return sig
 
 
 # ------------------------------------------------------------------ text utils
@@ -206,7 +224,7 @@ class KnowledgeBase:
     # -------------------------------------------------------------- build
     def build(self, force: bool = False, embed: bool = True) -> dict[str, Any]:
         kdir = self.cfg.knowledge_dir
-        files = sorted([p for p in kdir.rglob("*") if p.suffix.lower() in (".md", ".txt", ".pdf")])
+        files = _knowledge_files(kdir)
         if not files:
             return {"ok": False, "message": f"No .md/.txt/.pdf files found in {kdir}. Add classical text summaries there."}
 
@@ -231,6 +249,7 @@ class KnowledgeBase:
                 provider = f"{emb.provider}:{emb.model}"
         self.meta = {
             "files": [p.name for p in files],
+            "files_detail": _file_signatures(kdir),   # sha1 per file - used for staleness checks
             "chunks": len(chunks),
             "embedding_provider": provider or "bm25-only",
             "built": __import__("datetime").datetime.now().isoformat(timespec="seconds"),
@@ -339,8 +358,43 @@ class KnowledgeBase:
         return "\n\n".join(out)
 
     # -------------------------------------------------------------- status
+    def staleness(self) -> dict[str, Any]:
+        """Has the knowledge folder changed since the index was built?
+
+        Without this, editing a book or adding a new one silently keeps serving the
+        old content - the user assumes the agent ignored their text.
+        """
+        current = _file_signatures(self.cfg.knowledge_dir)
+        indexed = self.meta.get("files_detail") or {}
+        if not self.chunks:
+            return {"known": False, "stale": True, "reason": "no index built yet",
+                    "added": sorted(current), "removed": [], "changed": []}
+        if not indexed:
+            # index built by an older version that did not record signatures
+            old = set(self.meta.get("files", []))
+            added, removed = sorted(set(current) - old), sorted(old - set(current))
+            return {"known": False, "stale": bool(added or removed), "reason": "index predates signature tracking",
+                    "added": added, "removed": removed, "changed": []}
+        added = sorted(set(current) - set(indexed))
+        removed = sorted(set(indexed) - set(current))
+        changed = sorted(n for n in (set(current) & set(indexed))
+                         if current[n]["sha1"] != indexed[n]["sha1"])
+        return {"known": True, "stale": bool(added or removed or changed), "reason": "",
+                "added": added, "removed": removed, "changed": changed}
+
     def status(self) -> str:
         if not self.chunks:
-            return "empty"
+            return "empty - run: python build_index.py"
         emb = self.meta.get("embedding_provider", "?")
-        return f"{len(self.chunks)} chunks from {len(self.meta.get('files', []))} file(s); embeddings: {emb}"
+        base = f"{len(self.chunks)} chunks from {len(self.meta.get('files', []))} file(s); embeddings: {emb}"
+        st = self.staleness()
+        if st["stale"]:
+            parts = []
+            if st["added"]:
+                parts.append(f"{len(st['added'])} new")
+            if st["changed"]:
+                parts.append(f"{len(st['changed'])} edited")
+            if st["removed"]:
+                parts.append(f"{len(st['removed'])} removed")
+            base += f" | ⚠ STALE ({', '.join(parts)}) - rebuild: python build_index.py"
+        return base

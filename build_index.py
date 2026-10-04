@@ -34,6 +34,22 @@ def main() -> int:
         emb = Embedder(cfg)
         print(f"Embedding provider  : {emb.provider or 'none (BM25 only)'} {emb.model if emb.provider else ''}")
         print(f"Index status        : {kb.status()}")
+
+        # tell the user whether the index still matches the files on disk
+        st = kb.staleness()
+        if st["stale"]:
+            print("\nThe index is OUT OF DATE compared with data/knowledge/:")
+            for label, key in (("new file(s)", "added"), ("edited", "changed"), ("removed", "removed")):
+                if st[key]:
+                    print(f"  {label:14s}: {', '.join(st[key])}")
+            if st.get("reason"):
+                print(f"  note          : {st['reason']}")
+            print("\nRebuild so the agent uses the current texts:  python build_index.py")
+        else:
+            print("\nIndex is up to date with data/knowledge/.")
+        if not kb.chunks:
+            print("\nNo index found. Build one first:  python build_index.py")
+            return 1
         return 0
 
     files = sorted(p.name for p in cfg.knowledge_dir.rglob("*")

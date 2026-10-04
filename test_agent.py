@@ -302,6 +302,47 @@ def main() -> int:
     check("every third-party import is declared in requirements.txt", not missing,
           f"undeclared: {sorted(missing)}")
 
+    print("\nknowledge index freshness:")
+    import shutil
+    import tempfile
+
+    from core.config import Config as _Cfg
+    from core.rag import KnowledgeBase as _KB
+
+    tmp = Path(tempfile.mkdtemp(prefix="kbtest_"))
+    try:
+        (tmp / "knowledge").mkdir()
+        (tmp / "knowledge" / "a.md").write_text("# Test A\nJupiter transit rules for marriage timing.", encoding="utf-8")
+        cfg2 = _Cfg()
+        cfg2.raw.setdefault("rag", {})["knowledge_dir"] = str(tmp / "knowledge")
+        cfg2.raw["rag"]["index_path"] = str(tmp / "index.json")
+
+        kb2 = _KB(cfg2)
+        check("empty index reports as stale", kb2.staleness()["stale"] is True)
+
+        res = kb2.build(embed=False)
+        check("temp index builds", res["ok"] and res["chunks"] == 1, str(res.get("message")))
+        check("freshly built index is NOT stale", kb2.staleness()["stale"] is False, str(kb2.staleness()))
+        check("signatures recorded in meta", bool(kb2.meta.get("files_detail", {}).get("a.md", {}).get("sha1")))
+
+        (tmp / "knowledge" / "a.md").write_text("# Test A\nEdited: Saturn transit rules.", encoding="utf-8")
+        after_edit = kb2.staleness()
+        check("editing a file is detected", after_edit["stale"] and after_edit["changed"] == ["a.md"],
+              str(after_edit))
+
+        (tmp / "knowledge" / "b.md").write_text("# Test B\nNew chapter.", encoding="utf-8")
+        check("adding a file is detected", kb2.staleness()["added"] == ["b.md"], str(kb2.staleness()))
+
+        (tmp / "knowledge" / "a.md").unlink()
+        check("removing a file is detected", kb2.staleness()["removed"] == ["a.md"], str(kb2.staleness()))
+
+        kb2.build(embed=False)
+        check("rebuild clears the stale flag", kb2.staleness()["stale"] is False, str(kb2.staleness()))
+        check("status() surfaces staleness in text", "STALE" in _KB(cfg2).status()
+              or "chunks" in _KB(cfg2).status())
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
     print("\nproject consistency guards:")
     # app.py declares the core API level it needs; a mismatch must be caught here, not
     # by a user hitting a cryptic AttributeError after a git pull on a running server.

@@ -385,6 +385,19 @@ with tab_kb:
         st.markdown(f"**Status:** {agent.kb.status()}")
         if agent.kb.meta.get("files"):
             st.markdown("**Files indexed:** " + ", ".join(f"`{f}`" for f in agent.kb.meta["files"]))
+
+        stale = agent.kb.staleness()
+        if stale["stale"]:
+            detail = []
+            if stale["added"]:
+                detail.append(f"new: {', '.join(stale['added'])}")
+            if stale["changed"]:
+                detail.append(f"edited: {', '.join(stale['changed'])}")
+            if stale["removed"]:
+                detail.append(f"removed: {', '.join(stale['removed'])}")
+            st.warning("⚠️ **The index is out of date** — answers still use the previous version of "
+                       "your texts.\n\n" + ("\n".join(f"- {d}" for d in detail) or stale.get("reason", ""))
+                       + "\n\nRebuild below to pick up the changes.")
         emb = Embedder(cfg)
         st.markdown(f"**Embedding provider available now:** {emb.provider or 'none - BM25 keyword search will be used'}"
                     + (f" (`{emb.model}`)" if emb.provider else ""))
