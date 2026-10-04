@@ -302,6 +302,23 @@ def main() -> int:
     check("every third-party import is declared in requirements.txt", not missing,
           f"undeclared: {sorted(missing)}")
 
+    print("\nproject consistency guards:")
+    # app.py declares the core API level it needs; a mismatch must be caught here, not
+    # by a user hitting a cryptic AttributeError after a git pull on a running server.
+    import core as _core
+
+    app_src = (Path(__file__).parent / "app.py").read_text(encoding="utf-8")
+    m = re.search(r"REQUIRED_API_LEVEL\s*=\s*(\d+)", app_src)
+    check("app.py declares REQUIRED_API_LEVEL", m is not None)
+    if m:
+        required = int(m.group(1))
+        check(f"core API level satisfies app requirement ({_core.API_LEVEL} >= {required})",
+              _core.API_LEVEL >= required, f"core={_core.API_LEVEL} app={required}")
+    check("stale-process guard present in app.py", "Restart needed" in app_src)
+    # the guard must not be able to pass on a module object that lacks new APIs
+    check("guard uses a numeric level, not a version string",
+          "getattr(_core, \"API_LEVEL\", 0)" in app_src)
+
     print(f"\n{'-' * 46}\n{PASS} passed, {FAIL} failed\n{'-' * 46}")
     return 1 if FAIL else 0
 

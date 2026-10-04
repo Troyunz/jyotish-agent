@@ -16,6 +16,28 @@ from core.agent import BirthDetails, JyotishAgent
 from core.config import Config
 from core.rag import Embedder, KnowledgeBase
 
+# ---- stale-process guard -------------------------------------------------
+# This file is re-executed by Streamlit on every interaction, but imported
+# modules are cached in memory. After pulling an update, a server that was
+# started before the pull keeps running the OLD core/ code and would fail with
+# cryptic AttributeErrors. Fail clearly instead, with the fix.
+import core as _core
+
+REQUIRED_API_LEVEL = 2
+if getattr(_core, "API_LEVEL", 0) < REQUIRED_API_LEVEL:
+    st.set_page_config(page_title="Jyotish Agent - restart needed", page_icon="🔁")
+    st.error(
+        f"**Restart needed.** This app requires core API level {REQUIRED_API_LEVEL}, "
+        f"but the running process loaded level {getattr(_core, 'API_LEVEL', 0)}.\n\n"
+        "The application files were updated (for example by `git pull`) while this server was "
+        "running. Python keeps already-imported modules in memory, so the server is still using "
+        "the old code.\n\n"
+        "**Fix:** stop the server (Ctrl+C in its terminal) and start it again — "
+        "`streamlit run app.py`, or double-click `run.bat` on Windows. Nothing is broken; "
+        "the files on disk are correct."
+    )
+    st.stop()
+
 st.set_page_config(page_title="Jyotish Agent", page_icon="🔯", layout="wide")
 
 BACKENDS = {"local": "Ollama - local (free, offline)", "gemini": "Gemini - free tier",
